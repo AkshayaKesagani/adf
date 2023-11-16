@@ -1,0 +1,9 @@
+{
+	"name": "abcdef-123456",
+	"location": "centralindia",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "ada05c12-1e02-4563-89a5-363eef47bcaf",
+		"tenantId": "5c90ddac-41c6-456f-8ac6-8bc0facfe185"
+	}
+}
