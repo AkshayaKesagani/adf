@@ -1,0 +1,16 @@
+{
+	"name": "sqlonprem",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "SqlServer",
+		"typeProperties": {
+			"connectionString": "integrated security=False;data source=TGU1DELL0013\\SQLEXPRESS;initial catalog=assessment;user id=sa",
+			"encryptedCredential": "eyJDcmVkZW50aWFsSWQiOiI4YjEzNDk4OC02ZDFiLTRjMDctOTk1ZC0wNzA1M2NlNzk1ZGIiLCJWZXJzaW9uIjoiMi4wIiwiQ2xhc3NUeXBlIjoiTWljcm9zb2Z0LkRhdGFQcm94eS5Db3JlLkludGVyU2VydmljZURhdGFDb250cmFjdC5DcmVkZW50aWFsU1UwNkNZMTQifQ=="
+		},
+		"connectVia": {
+			"referenceName": "sharedir",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}
