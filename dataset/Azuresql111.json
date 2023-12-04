@@ -1,0 +1,16 @@
+{
+	"name": "Azuresql111",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "azuresqlserver111",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "table1"
+		}
+	}
+}

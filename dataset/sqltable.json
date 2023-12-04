@@ -1,0 +1,31 @@
+{
+	"name": "sqltable",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "sqlonprem",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "SqlServerTable",
+		"schema": [
+			{
+				"name": "EID",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "DID",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "JOBROLE",
+				"type": "varchar"
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "EMPLOYEES"
+		}
+	}
+}
