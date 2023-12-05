@@ -5,8 +5,8 @@
 		"annotations": [],
 		"type": "SqlServer",
 		"typeProperties": {
-			"connectionString": "integrated security=False;data source=azure-sql-db-111;initial catalog=demo;user id=Akshaya",
-			"encryptedCredential": "ew0KICAiVmVyc2lvbiI6ICIyMDE3LTExLTMwIiwNCiAgIlByb3RlY3Rpb25Nb2RlIjogIktleSIsDQogICJTZWNyZXRDb250ZW50VHlwZSI6ICJQbGFpbnRleHQiLA0KICAiQ3JlZGVudGlhbElkIjogIkRBVEFGQUNUT1JZQEQ3Nzg2OTE1LTlDMjEtNEFENS05M0U2LTAzRTQ2RUI1M0E3QV83OGU5NWZiMi03ZjllLTQ5Y2UtOWVjYi05ZGIwODE5MTFmNjkiDQp9"
+			"connectionString": "integrated security=False;data source=azure-sql-db-111.database.windows.net;initial catalog=demo;user id=Akshaya",
+			"encryptedCredential": "ew0KICAiVmVyc2lvbiI6ICIyMDE3LTExLTMwIiwNCiAgIlByb3RlY3Rpb25Nb2RlIjogIktleSIsDQogICJTZWNyZXRDb250ZW50VHlwZSI6ICJQbGFpbnRleHQiLA0KICAiQ3JlZGVudGlhbElkIjogIkRBVEFGQUNUT1JZQEQ3Nzg2OTE1LTlDMjEtNEFENS05M0U2LTAzRTQ2RUI1M0E3QV8wYjM2MDdiZi0zNjhmLTQxYTctODliMy1iYzQ2MjY2ZjQ3NGEiDQp9"
 		}
 	}
 }
