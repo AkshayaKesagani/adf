@@ -1,9 +1,13 @@
 {
 	"name": "sqldb_ds_111",
 	"properties": {
-		"linkedServiceName": {
-			"referenceName": "azuresqlserver111",
-			"type": "LinkedServiceReference"
+		"parameters": {
+			"schemaname": {
+				"type": "string"
+			},
+			"tablename": {
+				"type": "string"
+			}
 		},
 		"annotations": [],
 		"type": "AzureSqlTable",

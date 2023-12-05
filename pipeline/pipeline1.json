@@ -19,7 +19,8 @@
 						"type": "DelimitedTextSource",
 						"additionalColumns": [
 							{
-								"value": ""
+								"name": "filename",
+								"value": "$$FILENAME"
 							}
 						],
 						"storeSettings": {
@@ -38,7 +39,11 @@
 							"copyBehavior": "PreserveHierarchy",
 							"metadata": [
 								{
-									"value": ""
+									"name": "pipelinename",
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									}
 								}
 							]
 						},
@@ -94,6 +99,8 @@
 			{
 				"name": "Copy data2",
 				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
 				"dependsOn": [],
 				"policy": {
 					"timeout": "0.12:00:00",
@@ -149,7 +156,7 @@
 			},
 			"outputfolder": {
 				"type": "string",
-				"defaultValue": "output"
+				"defaultValue": "outputs"
 			},
 			"outputfile": {
 				"type": "string",

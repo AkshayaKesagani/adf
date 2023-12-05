@@ -99,7 +99,11 @@
 							"type": "AzureBlobStorageWriteSettings",
 							"metadata": [
 								{
-									"value": ""
+									"name": "pipelinename",
+									"value": {
+										"value": "@pipeline().Pipeline",
+										"type": "Expression"
+									}
 								}
 							]
 						},
