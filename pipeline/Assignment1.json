@@ -19,7 +19,7 @@
 						"type": "DelimitedTextSource",
 						"additionalColumns": [
 							{
-								"name": "loaddate",
+								"name": "Loadtime",
 								"value": {
 									"value": "@pipeline().TriggerTime",
 									"type": "Expression"
@@ -29,6 +29,8 @@
 						"storeSettings": {
 							"type": "AzureBlobStorageReadSettings",
 							"recursive": true,
+							"wildcardFolderPath": "T1",
+							"wildcardFileName": "*.csv",
 							"enablePartitionDiscovery": false
 						},
 						"formatSettings": {
@@ -36,7 +38,7 @@
 						}
 					},
 					"sink": {
-						"type": "AzureSqlSink",
+						"type": "SqlServerSink",
 						"writeBehavior": "upsert",
 						"upsertSettings": {
 							"useTempDB": true,
@@ -45,8 +47,7 @@
 							]
 						},
 						"sqlWriterUseTableLock": false,
-						"tableOption": "autoCreate",
-						"disableMetricsCollection": false
+						"tableOption": "autoCreate"
 					},
 					"enableStaging": false,
 					"translator": {
@@ -123,6 +124,17 @@
 									"type": "String",
 									"physicalType": "String"
 								}
+							},
+							{
+								"source": {
+									"name": "Loadtime",
+									"type": "String"
+								},
+								"sink": {
+									"name": "Loadtime",
+									"type": "String",
+									"physicalType": "String"
+								}
 							}
 						],
 						"typeConversion": true,
@@ -134,20 +146,24 @@
 				},
 				"inputs": [
 					{
-						"referenceName": "T1dataset",
-						"type": "DatasetReference",
-						"parameters": {
-							"filename": {
-								"value": "@pipeline().parameters.T1filename",
-								"type": "Expression"
-							}
-						}
+						"referenceName": "t1ds",
+						"type": "DatasetReference"
 					}
 				],
 				"outputs": [
 					{
-						"referenceName": "sqldb_ds_111",
-						"type": "DatasetReference"
+						"referenceName": "sqldb111ds",
+						"type": "DatasetReference",
+						"parameters": {
+							"tablename": {
+								"value": "@pipeline().parameters.tablename",
+								"type": "Expression"
+							},
+							"schemaname": {
+								"value": "@pipeline().parameters.schemaname",
+								"type": "Expression"
+							}
+						}
 					}
 				]
 			},
@@ -166,9 +182,20 @@
 				"typeProperties": {
 					"source": {
 						"type": "DelimitedTextSource",
+						"additionalColumns": [
+							{
+								"name": "Loadtime",
+								"value": {
+									"value": "@pipeline().TriggerTime",
+									"type": "Expression"
+								}
+							}
+						],
 						"storeSettings": {
 							"type": "AzureBlobStorageReadSettings",
 							"recursive": true,
+							"wildcardFolderPath": "T2",
+							"wildcardFileName": "*.csv",
 							"enablePartitionDiscovery": false
 						},
 						"formatSettings": {
@@ -176,7 +203,7 @@
 						}
 					},
 					"sink": {
-						"type": "AzureSqlSink",
+						"type": "SqlServerSink",
 						"writeBehavior": "upsert",
 						"upsertSettings": {
 							"useTempDB": true,
@@ -185,8 +212,7 @@
 							]
 						},
 						"sqlWriterUseTableLock": false,
-						"tableOption": "autoCreate",
-						"disableMetricsCollection": false
+						"tableOption": "autoCreate"
 					},
 					"enableStaging": false,
 					"translator": {
@@ -274,20 +300,24 @@
 				},
 				"inputs": [
 					{
-						"referenceName": "T2dataset",
-						"type": "DatasetReference",
-						"parameters": {
-							"filename": {
-								"value": "@pipeline().parameters.T2filename",
-								"type": "Expression"
-							}
-						}
+						"referenceName": "t2ds",
+						"type": "DatasetReference"
 					}
 				],
 				"outputs": [
 					{
-						"referenceName": "sqldb_ds_222",
-						"type": "DatasetReference"
+						"referenceName": "sqldb222ds",
+						"type": "DatasetReference",
+						"parameters": {
+							"Schemaname": {
+								"value": "@pipeline().parameters.schemaname",
+								"type": "Expression"
+							},
+							"Tablename": {
+								"value": "@pipeline().parameters.tablename",
+								"type": "Expression"
+							}
+						}
 					}
 				]
 			},
@@ -306,9 +336,20 @@
 				"typeProperties": {
 					"source": {
 						"type": "DelimitedTextSource",
+						"additionalColumns": [
+							{
+								"name": "Loadtime",
+								"value": {
+									"value": "@pipeline().TriggerTime",
+									"type": "Expression"
+								}
+							}
+						],
 						"storeSettings": {
 							"type": "AzureBlobStorageReadSettings",
 							"recursive": true,
+							"wildcardFolderPath": "T3",
+							"wildcardFileName": "*.csv",
 							"enablePartitionDiscovery": false
 						},
 						"formatSettings": {
@@ -316,7 +357,7 @@
 						}
 					},
 					"sink": {
-						"type": "AzureSqlSink",
+						"type": "SqlServerSink",
 						"writeBehavior": "upsert",
 						"upsertSettings": {
 							"useTempDB": true,
@@ -325,8 +366,7 @@
 							]
 						},
 						"sqlWriterUseTableLock": false,
-						"tableOption": "autoCreate",
-						"disableMetricsCollection": false
+						"tableOption": "autoCreate"
 					},
 					"enableStaging": false,
 					"translator": {
@@ -414,36 +454,36 @@
 				},
 				"inputs": [
 					{
-						"referenceName": "T4dataset",
-						"type": "DatasetReference",
-						"parameters": {
-							"filename": {
-								"value": "@pipeline().parameters.T4filename",
-								"type": "Expression"
-							}
-						}
+						"referenceName": "t3ds",
+						"type": "DatasetReference"
 					}
 				],
 				"outputs": [
 					{
-						"referenceName": "sqldb_ds_333",
-						"type": "DatasetReference"
+						"referenceName": "sqldb333ds",
+						"type": "DatasetReference",
+						"parameters": {
+							"Tablename": {
+								"value": "@pipeline().parameters.tablename",
+								"type": "Expression"
+							},
+							"Schemaname": {
+								"value": "@pipeline().parameters.schemaname",
+								"type": "Expression"
+							}
+						}
 					}
 				]
 			}
 		],
 		"parameters": {
-			"T1filename": {
+			"tablename": {
 				"type": "string",
-				"defaultValue": "year=2023/month=11/day=28/Sampledata.csv"
+				"defaultValue": "test"
 			},
-			"T2filename": {
+			"schemaname": {
 				"type": "string",
-				"defaultValue": "year=2023/month=11/day=28/Sampledata.csv"
-			},
-			"T4filename": {
-				"type": "string",
-				"defaultValue": "year=2023/month=11/day=28/Sampledata.csv"
+				"defaultValue": "dbo"
 			}
 		},
 		"annotations": []
