@@ -17,14 +17,6 @@
 				"typeProperties": {
 					"source": {
 						"type": "SqlServerSource",
-						"additionalColumns": [
-							{
-								"value": "$$COLUMN:"
-							},
-							{
-								"value": "$$COLUMN:"
-							}
-						],
 						"sqlReaderQuery": "select * from employees",
 						"queryTimeout": "02:00:00",
 						"partitionOption": "None"
@@ -67,65 +59,6 @@
 								"type": "Expression"
 							}
 						}
-					}
-				]
-			},
-			{
-				"name": "Copy data2",
-				"type": "Copy",
-				"dependsOn": [],
-				"policy": {
-					"timeout": "0.12:00:00",
-					"retry": 0,
-					"retryIntervalInSeconds": 30,
-					"secureOutput": false,
-					"secureInput": false
-				},
-				"userProperties": [],
-				"typeProperties": {
-					"source": {
-						"type": "BinarySource",
-						"storeSettings": {
-							"type": "AzureBlobStorageReadSettings",
-							"recursive": true
-						},
-						"formatSettings": {
-							"type": "BinaryReadSettings"
-						}
-					},
-					"sink": {
-						"type": "DelimitedTextSink",
-						"storeSettings": {
-							"type": "AzureBlobStorageWriteSettings",
-							"metadata": [
-								{
-									"name": "pipelinename",
-									"value": {
-										"value": "@pipeline().Pipeline",
-										"type": "Expression"
-									}
-								}
-							]
-						},
-						"formatSettings": {
-							"type": "DelimitedTextWriteSettings",
-							"quoteAllText": true,
-							"fileExtension": ".txt"
-						}
-					},
-					"enableStaging": false,
-					"parallelCopies": 4
-				},
-				"inputs": [
-					{
-						"referenceName": "BinaryDS",
-						"type": "DatasetReference"
-					}
-				],
-				"outputs": [
-					{
-						"referenceName": "outputdataset",
-						"type": "DatasetReference"
 					}
 				]
 			}
