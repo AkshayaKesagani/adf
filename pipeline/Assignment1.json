@@ -29,6 +29,14 @@
 						"storeSettings": {
 							"type": "AzureBlobStorageReadSettings",
 							"recursive": true,
+							"modifiedDatetimeStart": {
+								"value": "@addToTime(utcnow(),-1,'Day')",
+								"type": "Expression"
+							},
+							"modifiedDatetimeEnd": {
+								"value": "@utcnow()",
+								"type": "Expression"
+							},
 							"wildcardFolderPath": "T1",
 							"wildcardFileName": "*.csv",
 							"enablePartitionDiscovery": false
@@ -194,6 +202,14 @@
 						"storeSettings": {
 							"type": "AzureBlobStorageReadSettings",
 							"recursive": true,
+							"modifiedDatetimeStart": {
+								"value": "@addToTime(utcnow(),-1,'Day')",
+								"type": "Expression"
+							},
+							"modifiedDatetimeEnd": {
+								"value": "@utcnow()",
+								"type": "Expression"
+							},
 							"wildcardFolderPath": "T2",
 							"wildcardFileName": "*.csv",
 							"enablePartitionDiscovery": false
@@ -206,7 +222,7 @@
 						"type": "SqlServerSink",
 						"writeBehavior": "upsert",
 						"upsertSettings": {
-							"useTempDB": true,
+							"useTempDB": false,
 							"keys": [
 								"id"
 							]
@@ -348,6 +364,10 @@
 						"storeSettings": {
 							"type": "AzureBlobStorageReadSettings",
 							"recursive": true,
+							"modifiedDatetimeStart": {
+								"value": "@addToTime(utcnow(),-1,'Day')",
+								"type": "Expression"
+							},
 							"wildcardFolderPath": "T3",
 							"wildcardFileName": "*.csv",
 							"enablePartitionDiscovery": false
