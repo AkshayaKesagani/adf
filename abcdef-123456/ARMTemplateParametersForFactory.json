@@ -7,6 +7,24 @@
 		},
 		"123abcdef123_sa_connectionString": {
 			"value": ""
+		},
+		"azure_sql_db_111_connectionString": {
+			"value": ""
+		},
+		"azure_sql_db_222_connectionString": {
+			"value": ""
+		},
+		"azure_sql_db_333_connectionString": {
+			"value": ""
+		},
+		"azuresqldb_connectionString": {
+			"value": ""
+		},
+		"sqlonprem_connectionString": {
+			"value": ""
+		},
+		"sharedir_properties_typeProperties_linkedInfo_resourceId": {
+			"value": "/subscriptions/a5404a65-4631-4bb7-ae98-6a05acfeec52/resourcegroups/demo_477/providers/Microsoft.DataFactory/factories/pqrst/integrationruntimes/onprem-ir"
 		}
 	}
 }
