@@ -22,7 +22,7 @@
 			"password": {
 				"type": "AzureKeyVaultSecret",
 				"store": {
-					"referenceName": "server1pw",
+					"referenceName": "keyvault",
 					"type": "LinkedServiceReference"
 				},
 				"secretName": {
