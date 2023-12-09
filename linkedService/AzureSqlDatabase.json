@@ -10,12 +10,15 @@
 			},
 			"secretname": {
 				"type": "string"
+			},
+			"Username": {
+				"type": "string"
 			}
 		},
 		"annotations": [],
 		"type": "AzureSqlDatabase",
 		"typeProperties": {
-			"connectionString": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=@{linkedService().servername};Initial Catalog=@{linkedService().databasename};User ID=training",
+			"connectionString": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=@{linkedService().servername};Initial Catalog=@{linkedService().databasename};User ID=@{linkedService().Username}",
 			"password": {
 				"type": "AzureKeyVaultSecret",
 				"store": {
