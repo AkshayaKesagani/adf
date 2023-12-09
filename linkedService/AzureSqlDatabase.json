@@ -7,6 +7,9 @@
 			},
 			"databasename": {
 				"type": "string"
+			},
+			"secretname": {
+				"type": "string"
 			}
 		},
 		"annotations": [],
@@ -19,7 +22,10 @@
 					"referenceName": "server1pw",
 					"type": "LinkedServiceReference"
 				},
-				"secretName": "training"
+				"secretName": {
+					"value": "@linkedService().secretname",
+					"type": "Expression"
+				}
 			}
 		}
 	},
