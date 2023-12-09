@@ -1,10 +1,6 @@
 {
 	"name": "sqldb333ds",
 	"properties": {
-		"linkedServiceName": {
-			"referenceName": "azure_sql_db_333",
-			"type": "LinkedServiceReference"
-		},
 		"parameters": {
 			"Tablename": {
 				"type": "string"

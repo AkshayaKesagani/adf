@@ -1,10 +1,6 @@
 {
 	"name": "sqldb222ds",
 	"properties": {
-		"linkedServiceName": {
-			"referenceName": "azure_sql_db_222",
-			"type": "LinkedServiceReference"
-		},
 		"parameters": {
 			"Schemaname": {
 				"type": "string"

@@ -1,10 +1,6 @@
 {
 	"name": "sqldb111ds",
 	"properties": {
-		"linkedServiceName": {
-			"referenceName": "azure_sql_db_111",
-			"type": "LinkedServiceReference"
-		},
 		"parameters": {
 			"tablename": {
 				"type": "string"
