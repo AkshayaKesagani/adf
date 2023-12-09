@@ -1,15 +1,31 @@
 {
-	"name": "t1ds",
+	"name": "blobds",
 	"properties": {
 		"linkedServiceName": {
-			"referenceName": "123abcdef123_sa",
+			"referenceName": "akshayasa_ls",
 			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"filename": {
+				"type": "string"
+			},
+			"foldername": {
+				"type": "string"
+			}
 		},
 		"annotations": [],
 		"type": "DelimitedText",
 		"typeProperties": {
 			"location": {
 				"type": "AzureBlobStorageLocation",
+				"fileName": {
+					"value": "@dataset().filename",
+					"type": "Expression"
+				},
+				"folderPath": {
+					"value": "@dataset().foldername",
+					"type": "Expression"
+				},
 				"container": "files"
 			},
 			"columnDelimiter": ",",

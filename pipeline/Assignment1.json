@@ -76,11 +76,15 @@
 				],
 				"outputs": [
 					{
-						"referenceName": "t1ds",
+						"referenceName": "blobds",
 						"type": "DatasetReference",
 						"parameters": {
-							"": {
+							"filename": {
 								"value": "@concat('year=',utcnow('yyyy'),'/month=',utcnow('MM'),'/day=',utcnow('dd'))",
+								"type": "Expression"
+							},
+							"foldername": {
+								"value": "@pipeline().parameters.foldername",
 								"type": "Expression"
 							}
 						}
@@ -91,7 +95,7 @@
 		"parameters": {
 			"servername": {
 				"type": "string",
-				"defaultValue": "azure-training-sqlserver1"
+				"defaultValue": "azure-training-sqlserver1.database.windows.net"
 			},
 			"username": {
 				"type": "string",
@@ -112,6 +116,9 @@
 			"schemaname": {
 				"type": "string",
 				"defaultValue": "dbo"
+			},
+			"foldername": {
+				"type": "string"
 			}
 		},
 		"annotations": []
