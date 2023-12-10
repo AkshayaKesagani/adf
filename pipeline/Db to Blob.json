@@ -1,5 +1,5 @@
 {
-	"name": "pipeline1",
+	"name": "Db to Blob",
 	"properties": {
 		"activities": [
 			{
@@ -130,7 +130,7 @@
 									"type": "DatasetReference",
 									"parameters": {
 										"filename": {
-											"value": "@concat('year=',utcnow('yyyy'),'/month=',utcnow('MM'),'/day=',utcnow('dd'),'/',item().DES_TB,'.csv')",
+											"value": "@concat('year=',utcnow('yyyy'),'/month=',utcnow('MM'),'/day=',utcnow('dd'),'/',item().DES_TB,'_',utcnow(),'.csv')",
 											"type": "Expression"
 										},
 										"foldername": {
@@ -142,11 +142,17 @@
 							]
 						},
 						{
-							"name": "Stored procedure1",
+							"name": "Updating control_table watermark column",
 							"type": "SqlServerStoredProcedure",
 							"dependsOn": [
 								{
 									"activity": "Copy data from sqldb table to file",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								},
+								{
+									"activity": "Get the lastmodified time from src table",
 									"dependencyConditions": [
 										"Succeeded"
 									]
@@ -169,6 +175,13 @@
 											"type": "Expression"
 										},
 										"type": "String"
+									},
+									"LastModifiedTime": {
+										"value": {
+											"value": "@activity('Get the lastmodified time from src table').output.firstRow.LastModifiedTime",
+											"type": "Expression"
+										},
+										"type": "Datetime"
 									}
 								}
 							},
@@ -181,6 +194,61 @@
 									"secretname": "sqlserver1",
 									"Username": "training"
 								}
+							}
+						},
+						{
+							"name": "Get the lastmodified time from src table",
+							"type": "Lookup",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "AzureSqlSource",
+									"sqlReaderQuery": {
+										"value": "select max(ValidFrom) as LastModifiedTime from @{item().SRC_TB}\n",
+										"type": "Expression"
+									},
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"dataset": {
+									"referenceName": "sqldatads",
+									"type": "DatasetReference",
+									"parameters": {
+										"servername": {
+											"value": "@item().SRC_LOC",
+											"type": "Expression"
+										},
+										"username": {
+											"value": "@item().USERNAME",
+											"type": "Expression"
+										},
+										"schemaname": {
+											"value": "@item().SRC_SCHEMA",
+											"type": "Expression"
+										},
+										"databasename": {
+											"value": "@item().SRC_DB",
+											"type": "Expression"
+										},
+										"secretname": {
+											"value": "@item().secretname",
+											"type": "Expression"
+										},
+										"tablename": {
+											"value": "@item().SRC_TB",
+											"type": "Expression"
+										}
+									}
+								},
+								"firstRowOnly": true
 							}
 						}
 					]
