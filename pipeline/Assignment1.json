@@ -41,7 +41,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"items": {
-						"value": "@activity('Loop through control_table').output.values",
+						"value": "@activity('Loop through control_table').output.value",
 						"type": "Expression"
 					},
 					"isSequential": true,
