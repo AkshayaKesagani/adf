@@ -34,7 +34,7 @@
 	},
 	"resources": [
 		{
-			"name": "[concat(parameters('factoryName'), '/Assignment1')]",
+			"name": "[concat(parameters('factoryName'), '/Db to Blob')]",
 			"type": "Microsoft.DataFactory/factories/pipelines",
 			"apiVersion": "2018-06-01",
 			"properties": {
@@ -60,165 +60,12 @@
 							"dataset": {
 								"referenceName": "controltableds",
 								"type": "DatasetReference",
-								"parameters": {}
-							},
-							"firstRowOnly": false
-						}
-					},
-					{
-						"name": "Loop through each item in the control_table",
-						"type": "ForEach",
-						"dependsOn": [
-							{
-								"activity": "Loop through control_table",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"userProperties": [],
-						"typeProperties": {
-							"items": {
-								"value": "@activity('Loop through control_table').output.value",
-								"type": "Expression"
-							},
-							"isSequential": true,
-							"activities": [
-								{
-									"name": "Copy data from sqldb to table",
-									"type": "Copy",
-									"dependsOn": [],
-									"policy": {
-										"timeout": "0.12:00:00",
-										"retry": 0,
-										"retryIntervalInSeconds": 30,
-										"secureOutput": false,
-										"secureInput": false
-									},
-									"userProperties": [],
-									"typeProperties": {
-										"source": {
-											"type": "AzureSqlSource",
-											"sqlReaderQuery": {
-												"value": "select * from '@{item().value.SRC_TB}' \nwhere ValidFrom>'@{item().value.watermark_value}''",
-												"type": "Expression"
-											},
-											"queryTimeout": "02:00:00",
-											"partitionOption": "None"
-										},
-										"sink": {
-											"type": "DelimitedTextSink",
-											"storeSettings": {
-												"type": "AzureBlobStorageWriteSettings"
-											},
-											"formatSettings": {
-												"type": "DelimitedTextWriteSettings",
-												"quoteAllText": true,
-												"fileExtension": ".txt"
-											}
-										},
-										"enableStaging": false,
-										"translator": {
-											"type": "TabularTranslator",
-											"typeConversion": true,
-											"typeConversionSettings": {
-												"allowDataTruncation": true,
-												"treatBooleanAsNumber": false
-											}
-										}
-									},
-									"inputs": [
-										{
-											"referenceName": "sqldatads",
-											"type": "DatasetReference",
-											"parameters": {
-												"servername": {
-													"value": "@item().value.SRC_LOC",
-													"type": "Expression"
-												},
-												"username": {
-													"value": "@item().value.USERNAME",
-													"type": "Expression"
-												},
-												"schemaname": {
-													"value": "@item().value.SRC_SCHEMA",
-													"type": "Expression"
-												},
-												"databasename": {
-													"value": "@item().value.SRC_DB",
-													"type": "Expression"
-												},
-												"secretname": {
-													"value": "@item().value.SECRETNAME",
-													"type": "Expression"
-												},
-												"tablename": {
-													"value": "@item().value.SRC_TB",
-													"type": "Expression"
-												}
-											}
-										}
-									],
-									"outputs": [
-										{
-											"referenceName": "blobds",
-											"type": "DatasetReference",
-											"parameters": {
-												"filename": {
-													"value": "@concat('year=',utcnow('yyyy'),'/month=',utcnow('MM'),'/day=',utcnow('dd'))",
-													"type": "Expression"
-												},
-												"foldername": {
-													"value": "@item().value.DES_LOC",
-													"type": "Expression"
-												}
-											}
-										}
-									]
+								"parameters": {
+									"servername": "azure-training-sqlserver.database.windows.net",
+									"databasename": "demo",
+									"username": "training",
+									"secretname": "sqlserver1"
 								}
-							]
-						}
-					}
-				],
-				"policy": {
-					"elapsedTimeMetric": {}
-				},
-				"annotations": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/controltableds')]",
-				"[concat(variables('factoryId'), '/datasets/sqldatads')]",
-				"[concat(variables('factoryId'), '/datasets/blobds')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/Assignment1_copy1')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"activities": [
-					{
-						"name": "Loop through control_table",
-						"type": "Lookup",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"source": {
-								"type": "AzureSqlSource",
-								"queryTimeout": "02:00:00",
-								"partitionOption": "None"
-							},
-							"dataset": {
-								"referenceName": "controltableds",
-								"type": "DatasetReference",
-								"parameters": {}
 							},
 							"firstRowOnly": false
 						}
@@ -243,7 +90,7 @@
 							"isSequential": true,
 							"activities": [
 								{
-									"name": "Copy data from sqldb to table",
+									"name": "Copy data from sqldb table to file",
 									"type": "Copy",
 									"dependsOn": [],
 									"policy": {
@@ -258,165 +105,7 @@
 										"source": {
 											"type": "AzureSqlSource",
 											"sqlReaderQuery": {
-												"value": "select * from '@{item().SRC_TB}' \nwhere ValidFrom>'@{item().watermark_value}''",
-												"type": "Expression"
-											},
-											"queryTimeout": "02:00:00",
-											"partitionOption": "None"
-										},
-										"sink": {
-											"type": "DelimitedTextSink",
-											"storeSettings": {
-												"type": "AzureBlobStorageWriteSettings"
-											},
-											"formatSettings": {
-												"type": "DelimitedTextWriteSettings",
-												"quoteAllText": true,
-												"fileExtension": ".txt"
-											}
-										},
-										"enableStaging": false,
-										"translator": {
-											"type": "TabularTranslator",
-											"typeConversion": true,
-											"typeConversionSettings": {
-												"allowDataTruncation": true,
-												"treatBooleanAsNumber": false
-											}
-										}
-									},
-									"inputs": [
-										{
-											"referenceName": "sqldatads",
-											"type": "DatasetReference",
-											"parameters": {
-												"servername": {
-													"value": "@item().SRC_LOC",
-													"type": "Expression"
-												},
-												"username": {
-													"value": "@item().USERNAME",
-													"type": "Expression"
-												},
-												"schemaname": {
-													"value": "@item().SRC_SCHEMA",
-													"type": "Expression"
-												},
-												"databasename": {
-													"value": "@item().SRC_DB",
-													"type": "Expression"
-												},
-												"secretname": {
-													"value": "@item().SECRETNAME",
-													"type": "Expression"
-												},
-												"tablename": {
-													"value": "@item().SRC_TB",
-													"type": "Expression"
-												}
-											}
-										}
-									],
-									"outputs": [
-										{
-											"referenceName": "blobds",
-											"type": "DatasetReference",
-											"parameters": {
-												"filename": {
-													"value": "@concat('year=',utcnow('yyyy'),'/month=',utcnow('MM'),'/day=',utcnow('dd'),item().SRC_TB,'.csv')",
-													"type": "Expression"
-												},
-												"foldername": {
-													"value": "@item().DES_LOC",
-													"type": "Expression"
-												}
-											}
-										}
-									]
-								}
-							]
-						}
-					}
-				],
-				"policy": {
-					"elapsedTimeMetric": {}
-				},
-				"annotations": []
-			},
-			"dependsOn": [
-				"[concat(variables('factoryId'), '/datasets/controltableds')]",
-				"[concat(variables('factoryId'), '/datasets/sqldatads')]",
-				"[concat(variables('factoryId'), '/datasets/blobds')]"
-			]
-		},
-		{
-			"name": "[concat(parameters('factoryName'), '/pipeline1')]",
-			"type": "Microsoft.DataFactory/factories/pipelines",
-			"apiVersion": "2018-06-01",
-			"properties": {
-				"activities": [
-					{
-						"name": "Loop through control_table",
-						"type": "Lookup",
-						"dependsOn": [],
-						"policy": {
-							"timeout": "0.12:00:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"source": {
-								"type": "AzureSqlSource",
-								"queryTimeout": "02:00:00",
-								"partitionOption": "None"
-							},
-							"dataset": {
-								"referenceName": "controltableds",
-								"type": "DatasetReference",
-								"parameters": {}
-							},
-							"firstRowOnly": false
-						}
-					},
-					{
-						"name": "Loop through each item in the control_table",
-						"type": "ForEach",
-						"dependsOn": [
-							{
-								"activity": "Loop through control_table",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"userProperties": [],
-						"typeProperties": {
-							"items": {
-								"value": "@activity('Loop through control_table').output.value",
-								"type": "Expression"
-							},
-							"isSequential": true,
-							"activities": [
-								{
-									"name": "Copy data from sqldb to table",
-									"type": "Copy",
-									"dependsOn": [],
-									"policy": {
-										"timeout": "0.12:00:00",
-										"retry": 0,
-										"retryIntervalInSeconds": 30,
-										"secureOutput": false,
-										"secureInput": false
-									},
-									"userProperties": [],
-									"typeProperties": {
-										"source": {
-											"type": "AzureSqlSource",
-											"sqlReaderQuery": {
-												"value": "select * from '@{item().SRC_TB}' \nwhere ValidFrom>'@{item().watermark_value}''",
+												"value": "select * from @{item().SRC_TB}\nwhere ValidFrom>'@{item().watermark_value}'",
 												"type": "Expression"
 											},
 											"queryTimeout": "02:00:00",
@@ -436,12 +125,8 @@
 										},
 										"enableStaging": false,
 										"translator": {
-											"type": "TabularTranslator",
-											"typeConversion": true,
-											"typeConversionSettings": {
-												"allowDataTruncation": true,
-												"treatBooleanAsNumber": false
-											}
+											"value": "@json(item().MAPPINGS)",
+											"type": "Expression"
 										}
 									},
 									"inputs": [
@@ -482,7 +167,7 @@
 											"type": "DatasetReference",
 											"parameters": {
 												"filename": {
-													"value": "@concat('year=',utcnow('yyyy'),'/month=',utcnow('MM'),'/day=',utcnow('dd'))",
+													"value": "@concat('year=',utcnow('yyyy'),'/month=',utcnow('MM'),'/day=',utcnow('dd'),'/',item().DES_TB,'_',utcnow(),'.csv')",
 													"type": "Expression"
 												},
 												"foldername": {
@@ -492,6 +177,116 @@
 											}
 										}
 									]
+								},
+								{
+									"name": "Updating control_table watermark column",
+									"type": "SqlServerStoredProcedure",
+									"dependsOn": [
+										{
+											"activity": "Copy data from sqldb table to file",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										},
+										{
+											"activity": "Get the lastmodified time from src table",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"storedProcedureName": "[[dbo].[UPDATE_CONTROL_TABLE]",
+										"storedProcedureParameters": {
+											"TABLENAME": {
+												"value": {
+													"value": "@item().SRC_TB",
+													"type": "Expression"
+												},
+												"type": "String"
+											},
+											"LastModifiedTime": {
+												"value": {
+													"value": "@activity('Get the lastmodified time from src table').output.firstRow.LastModifiedTime",
+													"type": "Expression"
+												},
+												"type": "Datetime"
+											}
+										}
+									},
+									"linkedServiceName": {
+										"referenceName": "AzureSqlDatabase",
+										"type": "LinkedServiceReference",
+										"parameters": {
+											"servername": "azure-training-sqlserver.database.windows.net",
+											"databasename": "demo",
+											"secretname": "sqlserver1",
+											"Username": "training"
+										}
+									}
+								},
+								{
+									"name": "Get the lastmodified time from src table",
+									"type": "Lookup",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "AzureSqlSource",
+											"sqlReaderQuery": {
+												"value": "select max(ValidFrom) as LastModifiedTime from @{item().SRC_TB}\n",
+												"type": "Expression"
+											},
+											"queryTimeout": "02:00:00",
+											"partitionOption": "None"
+										},
+										"dataset": {
+											"referenceName": "sqldatads",
+											"type": "DatasetReference",
+											"parameters": {
+												"servername": {
+													"value": "@item().SRC_LOC",
+													"type": "Expression"
+												},
+												"username": {
+													"value": "@item().USERNAME",
+													"type": "Expression"
+												},
+												"schemaname": {
+													"value": "@item().SRC_SCHEMA",
+													"type": "Expression"
+												},
+												"databasename": {
+													"value": "@item().SRC_DB",
+													"type": "Expression"
+												},
+												"secretname": {
+													"value": "@item().secretname",
+													"type": "Expression"
+												},
+												"tablename": {
+													"value": "@item().SRC_TB",
+													"type": "Expression"
+												}
+											}
+										},
+										"firstRowOnly": true
+									}
 								}
 							]
 						}
@@ -505,7 +300,8 @@
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/controltableds')]",
 				"[concat(variables('factoryId'), '/datasets/sqldatads')]",
-				"[concat(variables('factoryId'), '/datasets/blobds')]"
+				"[concat(variables('factoryId'), '/datasets/blobds')]",
+				"[concat(variables('factoryId'), '/linkedServices/AzureSqlDatabase')]"
 			]
 		},
 		{
@@ -558,7 +354,43 @@
 			"properties": {
 				"linkedServiceName": {
 					"referenceName": "AzureSqlDatabase",
-					"type": "LinkedServiceReference"
+					"type": "LinkedServiceReference",
+					"parameters": {
+						"servername": {
+							"value": "@dataset().servername",
+							"type": "Expression"
+						},
+						"databasename": {
+							"value": "@dataset().databasename",
+							"type": "Expression"
+						},
+						"secretname": {
+							"value": "@dataset().secretname",
+							"type": "Expression"
+						},
+						"Username": {
+							"value": "@dataset().username",
+							"type": "Expression"
+						}
+					}
+				},
+				"parameters": {
+					"servername": {
+						"type": "string",
+						"defaultValue": "azure-training-sqlserver.database.windows.net"
+					},
+					"databasename": {
+						"type": "string",
+						"defaultValue": "demo"
+					},
+					"username": {
+						"type": "string",
+						"defaultValue": "training"
+					},
+					"secretname": {
+						"type": "string",
+						"defaultValue": "sqlserver1"
+					}
 				},
 				"annotations": [],
 				"type": "AzureSqlTable",
