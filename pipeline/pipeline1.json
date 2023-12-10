@@ -161,7 +161,16 @@
 							},
 							"userProperties": [],
 							"typeProperties": {
-								"storedProcedureName": "[dbo].[UPDATE_CONTROL_TABLE]"
+								"storedProcedureName": "[dbo].[UPDATE_CONTROL_TABLE]",
+								"storedProcedureParameters": {
+									"TABLENAME": {
+										"value": {
+											"value": "@item().SRC_TB",
+											"type": "Expression"
+										},
+										"type": "String"
+									}
+								}
 							},
 							"linkedServiceName": {
 								"referenceName": "AzureSqlDatabase",
