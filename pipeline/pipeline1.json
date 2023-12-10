@@ -47,7 +47,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"items": {
-						"value": "@activity('Loop through control_table').output.value",
+						"value": "@activity('Loop through control_table').output",
 						"type": "Expression"
 					},
 					"isSequential": true,
@@ -102,27 +102,27 @@
 									"type": "DatasetReference",
 									"parameters": {
 										"servername": {
-											"value": "@item().SRC_LOC",
+											"value": "@item().value.SRC_LOC",
 											"type": "Expression"
 										},
 										"username": {
-											"value": "@item().USERNAME",
+											"value": "@item().value.USERNAME",
 											"type": "Expression"
 										},
 										"schemaname": {
-											"value": "@item().SRC_SCHEMA",
+											"value": "@item().value.SRC_SCHEMA",
 											"type": "Expression"
 										},
 										"databasename": {
-											"value": "@item().SRC_DB",
+											"value": "@item().value.SRC_DB",
 											"type": "Expression"
 										},
 										"secretname": {
-											"value": "@item().SECRETNAME",
+											"value": "@item().value.SECRETNAME",
 											"type": "Expression"
 										},
 										"tablename": {
-											"value": "@item().SRC_TB",
+											"value": "@item().value.SRC_TB",
 											"type": "Expression"
 										}
 									}
@@ -134,11 +134,11 @@
 									"type": "DatasetReference",
 									"parameters": {
 										"filename": {
-											"value": "@concat('year=',utcnow('yyyy'),'/month=',utcnow('MM'),'/day=',utcnow('dd'))",
+											"value": "@concat('year=',utcnow('yyyy'),'/month=',utcnow('MM'),'/day=',utcnow('dd'),item().DES_TB,'.csv')",
 											"type": "Expression"
 										},
 										"foldername": {
-											"value": "@item().DES_LOC",
+											"value": "@item().value.DES_LOC",
 											"type": "Expression"
 										}
 									}
