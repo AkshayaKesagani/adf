@@ -1,6 +1,187 @@
 {
 	"name": "Type2 Handling Incremental",
 	"properties": {
+		"activities": [
+			{
+				"name": "Looping through all the tables",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Getting details from control table",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Getting details from control table').output.value",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "Source to destination copy",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "AzureSqlSource",
+									"sqlReaderQuery": {
+										"value": "select * from @{item().SRC_TB} where @{item().WATERMARK_COL}>'@{item().watermark_value}'",
+										"type": "Expression"
+									},
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"sink": {
+									"type": "AzureSqlSink",
+									"preCopyScript": "Truncate table @{item().des_tb}",
+									"writeBehavior": "insert",
+									"sqlWriterUseTableLock": false,
+									"tableOption": "autoCreate",
+									"disableMetricsCollection": false
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "sqldatads",
+									"type": "DatasetReference",
+									"parameters": {
+										"servername": {
+											"value": "@item().SRC_SERVER",
+											"type": "Expression"
+										},
+										"username": {
+											"value": "@item().username",
+											"type": "Expression"
+										},
+										"schemaname": {
+											"value": "@item().SRC_SCHEMA",
+											"type": "Expression"
+										},
+										"databasename": {
+											"value": "@item().SRC_DB",
+											"type": "Expression"
+										},
+										"secretname": {
+											"value": "@item().secretname",
+											"type": "Expression"
+										},
+										"tablename": {
+											"value": "@item().SRC_TB",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "sqldatads",
+									"type": "DatasetReference",
+									"parameters": {
+										"servername": {
+											"value": "@item().DES_SERVER",
+											"type": "Expression"
+										},
+										"username": {
+											"value": "@item().USERNAME",
+											"type": "Expression"
+										},
+										"schemaname": {
+											"value": "@item().des_schema",
+											"type": "Expression"
+										},
+										"databasename": {
+											"value": "@item().des_db",
+											"type": "Expression"
+										},
+										"secretname": {
+											"value": "@item().SECRETNAME",
+											"type": "Expression"
+										},
+										"tablename": {
+											"value": "@item().DES_TB",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						},
+						{
+							"name": "Loading data into dim",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "Source to destination copy",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": []
+						}
+					]
+				}
+			},
+			{
+				"name": "Getting details from control table",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": "select * from dbo.control_table \nwhere sourcetype='table' and desttype='table'",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "controltableds",
+						"type": "DatasetReference",
+						"parameters": {
+							"servername": "azure-training-sqlserver.database.windows.net",
+							"databasename": "demo",
+							"username": "training",
+							"secretname": "sqlserver1"
+						}
+					},
+					"firstRowOnly": false
+				}
+			}
+		],
 		"annotations": []
 	}
 }
