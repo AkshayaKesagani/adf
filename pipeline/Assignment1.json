@@ -41,7 +41,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"items": {
-						"value": "@activity('Loop through control_table').output",
+						"value": "@activity('Loop through control_table').output.values",
 						"type": "Expression"
 					},
 					"isSequential": true,
@@ -142,35 +142,6 @@
 				}
 			}
 		],
-		"parameters": {
-			"servername": {
-				"type": "string",
-				"defaultValue": "azure-training-sqlserver1.database.windows.net"
-			},
-			"username": {
-				"type": "string",
-				"defaultValue": "training"
-			},
-			"secretname": {
-				"type": "string",
-				"defaultValue": "sqlserver1"
-			},
-			"databasename": {
-				"type": "string",
-				"defaultValue": "demo"
-			},
-			"tablename": {
-				"type": "string",
-				"defaultValue": "Employee"
-			},
-			"schemaname": {
-				"type": "string",
-				"defaultValue": "dbo"
-			},
-			"foldername": {
-				"type": "string"
-			}
-		},
 		"annotations": []
 	}
 }
