@@ -1,0 +1,78 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "akshayadf-123"
+		},
+		"AzureSqlDatabase_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'AzureSqlDatabase'",
+			"defaultValue": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=@{linkedService().servername};Initial Catalog=@{linkedService().databasename};User ID=@{linkedService().Username}"
+		},
+		"akshayasa_ls_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'akshayasa_ls'"
+		},
+		"sqlonprem_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'sqlonprem'"
+		},
+		"keyvault_properties_typeProperties_baseUrl": {
+			"type": "string",
+			"defaultValue": "https://kvAssignment1.vault.azure.net/"
+		},
+		"sharedir_properties_typeProperties_linkedInfo_resourceId": {
+			"type": "string",
+			"defaultValue": "/subscriptions/a5404a65-4631-4bb7-ae98-6a05acfeec52/resourcegroups/demo_477/providers/Microsoft.DataFactory/factories/pqrst/integrationruntimes/onprem-ir"
+		},
+		"containerUri": {
+			"type": "string",
+			"metadata": "URI to storage account containing linked ARM templates"
+		},
+		"containerSasToken": {
+			"type": "string",
+			"metadata": "Sas token to storage account containing linked ARM templates"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "akshayadf-123_ArmTemplate_0",
+			"type": "Microsoft.Resources/deployments",
+			"apiVersion": "2018-02-01",
+			"properties": {
+				"mode": "incremental",
+				"templateLink": {
+					"uri": "[concat(parameters('containerUri'), '/ArmTemplate_0.json', parameters('containerSasToken'))]",
+					"contentVersion": "1.0.0.0"
+				},
+				"parameters": {
+					"factoryName": {
+						"value": "[parameters('factoryName')]"
+					},
+					"akshayasa_ls_connectionString": {
+						"value": "[parameters('akshayasa_ls_connectionString')]"
+					},
+					"AzureSqlDatabase_connectionString": {
+						"value": "[parameters('AzureSqlDatabase_connectionString')]"
+					},
+					"sqlonprem_connectionString": {
+						"value": "[parameters('sqlonprem_connectionString')]"
+					},
+					"keyvault_properties_typeProperties_baseUrl": {
+						"value": "[parameters('keyvault_properties_typeProperties_baseUrl')]"
+					},
+					"sharedir_properties_typeProperties_linkedInfo_resourceId": {
+						"value": "[parameters('sharedir_properties_typeProperties_linkedInfo_resourceId')]"
+					}
+				}
+			},
+			"dependsOn": []
+		}
+	]
+}
