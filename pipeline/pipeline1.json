@@ -1,0 +1,147 @@
+{
+	"name": "pipeline1",
+	"properties": {
+		"activities": [
+			{
+				"name": "Loop through control_table",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "controltableds",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": false
+				}
+			},
+			{
+				"name": "Loop through each item in the control_table",
+				"type": "ForEach",
+				"dependsOn": [
+					{
+						"activity": "Loop through control_table",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@activity('Loop through control_table').output.value",
+						"type": "Expression"
+					},
+					"isSequential": true,
+					"activities": [
+						{
+							"name": "Copy data from sqldb to table",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "AzureSqlSource",
+									"sqlReaderQuery": {
+										"value": "select * from '@{item().value.SRC_TB}' \nwhere ValidFrom>'@{item().value.watermark_value}''",
+										"type": "Expression"
+									},
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"sink": {
+									"type": "DelimitedTextSink",
+									"storeSettings": {
+										"type": "AzureBlobStorageWriteSettings"
+									},
+									"formatSettings": {
+										"type": "DelimitedTextWriteSettings",
+										"quoteAllText": true,
+										"fileExtension": ".txt"
+									}
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "sqldatads",
+									"type": "DatasetReference",
+									"parameters": {
+										"servername": {
+											"value": "@item().value.SRC_LOC",
+											"type": "Expression"
+										},
+										"username": {
+											"value": "@item().value.USERNAME",
+											"type": "Expression"
+										},
+										"schemaname": {
+											"value": "@item().value.SRC_SCHEMA",
+											"type": "Expression"
+										},
+										"databasename": {
+											"value": "@item().value.SRC_DB",
+											"type": "Expression"
+										},
+										"secretname": {
+											"value": "@item().value.SECRETNAME",
+											"type": "Expression"
+										},
+										"tablename": {
+											"value": "@item().value.SRC_TB",
+											"type": "Expression"
+										}
+									}
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "blobds",
+									"type": "DatasetReference",
+									"parameters": {
+										"filename": {
+											"value": "@concat('year=',utcnow('yyyy'),'/month=',utcnow('MM'),'/day=',utcnow('dd'))",
+											"type": "Expression"
+										},
+										"foldername": {
+											"value": "@item().value.DES_LOC",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						}
+					]
+				}
+			}
+		],
+		"annotations": []
+	}
+}
