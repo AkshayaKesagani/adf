@@ -68,7 +68,7 @@
 								"source": {
 									"type": "AzureSqlSource",
 									"sqlReaderQuery": {
-										"value": "select * from @{item().SRC_TB}\nwhere ValidFrom>'@{item().watermark_value}'",
+										"value": "select * from @{item().SRC_TB}\nwhere @{item().watermark_column}>'@{item().watermark_value}'",
 										"type": "Expression"
 									},
 									"queryTimeout": "02:00:00",
@@ -98,7 +98,7 @@
 									"type": "DatasetReference",
 									"parameters": {
 										"servername": {
-											"value": "@item().SRC_LOC",
+											"value": "@item().SRC_server",
 											"type": "Expression"
 										},
 										"username": {
@@ -130,11 +130,11 @@
 									"type": "DatasetReference",
 									"parameters": {
 										"filename": {
-											"value": "@concat('year=',utcnow('yyyy'),'/month=',utcnow('MM'),'/day=',utcnow('dd'),'/',item().DES_TB,'.csv')",
+											"value": "@concat('year=',utcnow('yyyy'),'/month=',utcnow('MM'),'/day=',utcnow('dd'),'/',item().DES_TB,'_',utcnow(),'.csv')",
 											"type": "Expression"
 										},
 										"foldername": {
-											"value": "@item().DES_LOC",
+											"value": "@item().DES_server",
 											"type": "Expression"
 										}
 									}
@@ -145,12 +145,6 @@
 							"name": "Updating control_table watermark column",
 							"type": "SqlServerStoredProcedure",
 							"dependsOn": [
-								{
-									"activity": "Copy data from sqldb table to file",
-									"dependencyConditions": [
-										"Succeeded"
-									]
-								},
 								{
 									"activity": "Get the lastmodified time from src table",
 									"dependencyConditions": [
@@ -182,6 +176,13 @@
 											"type": "Expression"
 										},
 										"type": "Datetime"
+									},
+									"Taskname": {
+										"value": {
+											"value": "@item().taskname",
+											"type": "Expression"
+										},
+										"type": "String"
 									}
 								}
 							},
@@ -199,7 +200,14 @@
 						{
 							"name": "Get the lastmodified time from src table",
 							"type": "Lookup",
-							"dependsOn": [],
+							"dependsOn": [
+								{
+									"activity": "Copy data from sqldb table to file",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
 							"policy": {
 								"timeout": "0.12:00:00",
 								"retry": 0,
@@ -212,7 +220,7 @@
 								"source": {
 									"type": "AzureSqlSource",
 									"sqlReaderQuery": {
-										"value": "select max(ValidFrom) as LastModifiedTime from @{item().SRC_TB}\n",
+										"value": "select max(@{item().watermark_column}) as LastModifiedTime from @{item().SRC_TB}\n",
 										"type": "Expression"
 									},
 									"queryTimeout": "02:00:00",
@@ -223,7 +231,7 @@
 									"type": "DatasetReference",
 									"parameters": {
 										"servername": {
-											"value": "@item().SRC_LOC",
+											"value": "@item().SRC_server",
 											"type": "Expression"
 										},
 										"username": {
