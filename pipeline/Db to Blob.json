@@ -130,7 +130,7 @@
 									"type": "DatasetReference",
 									"parameters": {
 										"filename": {
-											"value": "@concat('year=',utcnow('yyyy'),'/month=',utcnow('MM'),'/day=',utcnow('dd'),'/',item().DES_TB,'_',utcnow(),'.csv')",
+											"value": "@concat('year=',utcnow('yyyy'),'/month=',utcnow('MM'),'/day=',utcnow('dd'),'/',item().DES_TB,'.csv')",
 											"type": "Expression"
 										},
 										"foldername": {
