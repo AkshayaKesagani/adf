@@ -3,7 +3,43 @@
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "AzureSqlDatabase",
-			"type": "LinkedServiceReference"
+			"type": "LinkedServiceReference",
+			"parameters": {
+				"servername": {
+					"value": "@dataset().servername",
+					"type": "Expression"
+				},
+				"databasename": {
+					"value": "@dataset().databasename",
+					"type": "Expression"
+				},
+				"secretname": {
+					"value": "@dataset().secretname",
+					"type": "Expression"
+				},
+				"Username": {
+					"value": "@dataset().username",
+					"type": "Expression"
+				}
+			}
+		},
+		"parameters": {
+			"servername": {
+				"type": "string",
+				"defaultValue": "azure-training-sqlserver.database.windows.net"
+			},
+			"databasename": {
+				"type": "string",
+				"defaultValue": "demo"
+			},
+			"username": {
+				"type": "string",
+				"defaultValue": "training"
+			},
+			"secretname": {
+				"type": "string",
+				"defaultValue": "sqlserver1"
+			}
 		},
 		"annotations": [],
 		"type": "AzureSqlTable",

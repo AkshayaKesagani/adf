@@ -22,7 +22,13 @@
 					},
 					"dataset": {
 						"referenceName": "controltableds",
-						"type": "DatasetReference"
+						"type": "DatasetReference",
+						"parameters": {
+							"servername": "azure-training-sqlserver.database.windows.net",
+							"databasename": "demo",
+							"username": "training",
+							"secretname": "sqlserver1"
+						}
 					},
 					"firstRowOnly": false
 				}
