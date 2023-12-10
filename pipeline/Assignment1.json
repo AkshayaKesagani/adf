@@ -47,7 +47,7 @@
 					"isSequential": true,
 					"activities": [
 						{
-							"name": "Copy data1",
+							"name": "Copy data from sqldb to table",
 							"type": "Copy",
 							"dependsOn": [],
 							"policy": {
@@ -124,7 +124,17 @@
 							"outputs": [
 								{
 									"referenceName": "blobds",
-									"type": "DatasetReference"
+									"type": "DatasetReference",
+									"parameters": {
+										"filename": {
+											"value": "@concat('year=',utcnow('yyyy'),'/month=',utcnow('MM'),'/day=',utcnow('dd'))",
+											"type": "Expression"
+										},
+										"foldername": {
+											"value": "@item().value.DES_LOC",
+											"type": "Expression"
+										}
+									}
 								}
 							]
 						}
