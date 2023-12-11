@@ -144,7 +144,152 @@
 								"secureOutput": false,
 								"secureInput": false
 							},
-							"userProperties": []
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": {
+									"value": "@item().SPROC",
+									"type": "Expression"
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "AzureSqlDatabase",
+								"type": "LinkedServiceReference",
+								"parameters": {
+									"servername": {
+										"value": "@item().SRC_SERVER",
+										"type": "Expression"
+									},
+									"databasename": {
+										"value": "@item().SRC_DB",
+										"type": "Expression"
+									},
+									"secretname": {
+										"value": "@item().SECRETNAME",
+										"type": "Expression"
+									},
+									"Username": {
+										"value": "@item().USERNAME",
+										"type": "Expression"
+									}
+								}
+							}
+						},
+						{
+							"name": "Getting max date from source table",
+							"type": "Lookup",
+							"dependsOn": [
+								{
+									"activity": "Loading data into dim",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "AzureSqlSource",
+									"sqlReaderQuery": {
+										"value": "SELECT MAX(@{item().WATERMARK_COL})\nAS LastModifiedTime from @{item().SRC_TB} ",
+										"type": "Expression"
+									},
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"dataset": {
+									"referenceName": "sqldatads",
+									"type": "DatasetReference",
+									"parameters": {
+										"servername": {
+											"value": "@item().SRC_SERVER",
+											"type": "Expression"
+										},
+										"username": {
+											"value": "@item().USERNAME",
+											"type": "Expression"
+										},
+										"schemaname": {
+											"value": "@item().SRC_SCHEMA",
+											"type": "Expression"
+										},
+										"databasename": {
+											"value": "@item().SRC_DB",
+											"type": "Expression"
+										},
+										"secretname": {
+											"value": "@item().SECRETNAME",
+											"type": "Expression"
+										},
+										"tablename": {
+											"value": "@item().SRC_TB",
+											"type": "Expression"
+										}
+									}
+								}
+							}
+						},
+						{
+							"name": "Updating control_table watermark column",
+							"type": "SqlServerStoredProcedure",
+							"dependsOn": [
+								{
+									"activity": "Getting max date from source table",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"storedProcedureName": "[dbo].[UPDATE_CONTROL_TABLE]",
+								"storedProcedureParameters": {
+									"TABLENAME": {
+										"value": {
+											"value": "@item().SRC_TB",
+											"type": "Expression"
+										},
+										"type": "String"
+									},
+									"LastModifiedTime": {
+										"value": {
+											"value": "@activity('Getting max date from source table').output.firstRow.LastModifiedTime",
+											"type": "Expression"
+										},
+										"type": "Datetime"
+									},
+									"Taskname": {
+										"value": {
+											"value": "@item().TASKNAME",
+											"type": "Expression"
+										},
+										"type": "String"
+									}
+								}
+							},
+							"linkedServiceName": {
+								"referenceName": "AzureSqlDatabase",
+								"type": "LinkedServiceReference",
+								"parameters": {
+									"servername": "azure-training-sqlserver.database.windows.net",
+									"databasename": "demo",
+									"secretname": "sqlserver1",
+									"Username": "training"
+								}
+							}
 						}
 					]
 				}
