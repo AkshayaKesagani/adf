@@ -17,7 +17,7 @@
 				"typeProperties": {
 					"source": {
 						"type": "AzureSqlSource",
-						"sqlReaderQuery": "select * from dbo.control_table \nwhere sourcetype='table' and desttype='file'",
+						"sqlReaderQuery": "select * from dbo.control_table\nwhere sourcetype='table' and desttype='file'",
 						"queryTimeout": "02:00:00",
 						"partitionOption": "None"
 					},
@@ -274,39 +274,39 @@
 								},
 								"firstRowOnly": true
 							}
+						},
+						{
+							"name": "Send Email on failure",
+							"type": "WebActivity",
+							"dependsOn": [
+								{
+									"activity": "Copy data from sqldb table to file",
+									"dependencyConditions": [
+										"Failed"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"url": "https://prod-20.centralindia.logic.azure.com:443/workflows/e3adea16cbcb4721b63d93037ca154ec/triggers/manual/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=WwY1QEGOgVeJS7cu5AALEuhK-xHUd6es5Q0Jmepy9xc",
+								"method": "POST",
+								"headers": {
+									"Content-type": "application/json"
+								},
+								"body": {
+									"value": "{\n    \"PipelineName\":\"@{pipeline().Pipeline}\",\n    \"ErrorMessage\":\"@{activity('Copy data from sqldb table to file').Error.Message}\",\n    \"DataFactoryName\":\"@{pipeline().DataFactory}\",\n    \"PipelineRundId\":\"@{pipeline().RunId}\"\n}",
+									"type": "Expression"
+								}
+							}
 						}
 					]
-				}
-			},
-			{
-				"name": "Send Email on failure",
-				"type": "WebActivity",
-				"dependsOn": [
-					{
-						"activity": "Loop through each item in the control_table",
-						"dependencyConditions": [
-							"Failed"
-						]
-					}
-				],
-				"policy": {
-					"timeout": "0.12:00:00",
-					"retry": 0,
-					"retryIntervalInSeconds": 30,
-					"secureOutput": false,
-					"secureInput": false
-				},
-				"userProperties": [],
-				"typeProperties": {
-					"url": "https://prod-20.centralindia.logic.azure.com:443/workflows/e3adea16cbcb4721b63d93037ca154ec/triggers/manual/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=WwY1QEGOgVeJS7cu5AALEuhK-xHUd6es5Q0Jmepy9xc",
-					"method": "POST",
-					"headers": {
-						"Content-type": "application/json"
-					},
-					"body": {
-						"value": "{\n    \"PipelineName\":@{pipeline().Pipeline},\n    \"ErrorMessage\":@{activity('Copy data from sqldb table to file').Error.Message},\n    \"DataFactoryName\":@{pipeline().DataFactory},\n    \"PipelineRundId\":@{pipeline().RunId}\n}",
-						"type": "Expression"
-					}
 				}
 			},
 			{
@@ -335,7 +335,7 @@
 						"Content-type": "application/json"
 					},
 					"body": {
-						"value": "{\n    \"PipelineName\":@{pipeline().Pipeline},\n    \"ErrorMessage\":@{activity('Loop through control_table').Error.Message},\n    \"DataFactoryName\":@{pipeline().DataFactory},\n    \"PipelineRundId\":@{pipeline().RunId}\n}",
+						"value": "{\n    \"PipelineName\":\"@{pipeline().Pipeline}\",\n    \"ErrorMessage\":\"@{activity('Loop through control_table').Error.Message}\",\n    \"DataFactoryName\":\"@{pipeline().DataFactory}\",\n    \"RunId\":\"@{pipeline().RunId}\"\n}",
 						"type": "Expression"
 					}
 				}
