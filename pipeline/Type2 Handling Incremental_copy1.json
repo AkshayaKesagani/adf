@@ -1,5 +1,5 @@
 {
-	"name": "Type2 Handling Incremental",
+	"name": "Type2 Handling Incremental_copy1",
 	"properties": {
 		"activities": [
 			{
@@ -35,13 +35,25 @@
 							"userProperties": [],
 							"typeProperties": {
 								"source": {
-									"type": "AzureSqlSource",
-									"sqlReaderQuery": {
-										"value": "select * from @{item().SRC_TB} where @{item().WATERMARK_COL}>'@{item().watermark_value}'",
-										"type": "Expression"
+									"type": "DelimitedTextSource",
+									"storeSettings": {
+										"type": "AzureBlobStorageReadSettings",
+										"recursive": true,
+										"modifiedDatetimeStart": {
+											"value": "@item().watermark_value",
+											"type": "Expression"
+										},
+										"modifiedDatetimeEnd": {
+											"value": "@pipeline().TriggerTime",
+											"type": "Expression"
+										},
+										"wildcardFolderPath": "Table1",
+										"wildcardFileName": "*.csv",
+										"enablePartitionDiscovery": false
 									},
-									"queryTimeout": "02:00:00",
-									"partitionOption": "None"
+									"formatSettings": {
+										"type": "DelimitedTextReadSettings"
+									}
 								},
 								"sink": {
 									"type": "AzureSqlSink",
@@ -81,31 +93,15 @@
 							},
 							"inputs": [
 								{
-									"referenceName": "sqldatads",
+									"referenceName": "blobds",
 									"type": "DatasetReference",
 									"parameters": {
-										"servername": {
+										"filename": {
+											"value": "@concat('year=',utcnow('yyyy'),'/month=',utcnow('MM'),'/day=',utcnow('dd'),'/',item().SRC_TB,'.csv')",
+											"type": "Expression"
+										},
+										"foldername": {
 											"value": "@item().SRC_SERVER",
-											"type": "Expression"
-										},
-										"username": {
-											"value": "@item().username",
-											"type": "Expression"
-										},
-										"schemaname": {
-											"value": "@item().SRC_SCHEMA",
-											"type": "Expression"
-										},
-										"databasename": {
-											"value": "@item().SRC_DB",
-											"type": "Expression"
-										},
-										"secretname": {
-											"value": "@item().secretname",
-											"type": "Expression"
-										},
-										"tablename": {
-											"value": "@item().SRC_TB",
 											"type": "Expression"
 										}
 									}
@@ -193,72 +189,11 @@
 							}
 						},
 						{
-							"name": "Getting max date from source table",
-							"type": "Lookup",
-							"dependsOn": [
-								{
-									"activity": "Loading data into dim",
-									"dependencyConditions": [
-										"Succeeded"
-									]
-								}
-							],
-							"policy": {
-								"timeout": "0.12:00:00",
-								"retry": 0,
-								"retryIntervalInSeconds": 30,
-								"secureOutput": false,
-								"secureInput": false
-							},
-							"userProperties": [],
-							"typeProperties": {
-								"source": {
-									"type": "AzureSqlSource",
-									"sqlReaderQuery": {
-										"value": "SELECT MAX(@{item().WATERMARK_COL})\nAS LastModifiedTime from @{item().SRC_TB} ",
-										"type": "Expression"
-									},
-									"queryTimeout": "02:00:00",
-									"partitionOption": "None"
-								},
-								"dataset": {
-									"referenceName": "sqldatads",
-									"type": "DatasetReference",
-									"parameters": {
-										"servername": {
-											"value": "@item().SRC_SERVER",
-											"type": "Expression"
-										},
-										"username": {
-											"value": "@item().USERNAME",
-											"type": "Expression"
-										},
-										"schemaname": {
-											"value": "@item().SRC_SCHEMA",
-											"type": "Expression"
-										},
-										"databasename": {
-											"value": "@item().SRC_DB",
-											"type": "Expression"
-										},
-										"secretname": {
-											"value": "@item().SECRETNAME",
-											"type": "Expression"
-										},
-										"tablename": {
-											"value": "@item().SRC_TB",
-											"type": "Expression"
-										}
-									}
-								}
-							}
-						},
-						{
 							"name": "Updating control_table watermark column",
 							"type": "SqlServerStoredProcedure",
 							"dependsOn": [
 								{
-									"activity": "Getting max date from source table",
+									"activity": "Get lastmodified time of files",
 									"dependencyConditions": [
 										"Succeeded"
 									]
@@ -284,7 +219,7 @@
 									},
 									"LastModifiedTime": {
 										"value": {
-											"value": "@activity('Getting max date from source table').output.firstRow.LastModifiedTime",
+											"value": "@activity('Get lastmodified time of files').output",
 											"type": "Expression"
 										},
 										"type": "Datetime"
@@ -339,6 +274,52 @@
 									"type": "Expression"
 								}
 							}
+						},
+						{
+							"name": "Get lastmodified time of files",
+							"type": "GetMetadata",
+							"dependsOn": [
+								{
+									"activity": "Loading data into dim",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"dataset": {
+									"referenceName": "blobds",
+									"type": "DatasetReference",
+									"parameters": {
+										"filename": {
+											"value": "@concat('year=',utcnow('yyyy'),'/month=',utcnow('MM'),'/day=',utcnow('dd'),'/',item().SRC_TB,'.csv')",
+											"type": "Expression"
+										},
+										"foldername": {
+											"value": "@item().SRC_SERVER",
+											"type": "Expression"
+										}
+									}
+								},
+								"fieldList": [
+									"lastModified"
+								],
+								"storeSettings": {
+									"type": "AzureBlobStorageReadSettings",
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "DelimitedTextReadSettings"
+								}
+							}
 						}
 					]
 				}
@@ -358,7 +339,7 @@
 				"typeProperties": {
 					"source": {
 						"type": "AzureSqlSource",
-						"sqlReaderQuery": "select * from dbo.control_table \nwhere sourcetype='table' and desttype='table'",
+						"sqlReaderQuery": "select * from dbo.control_table \nwhere sourcetype='file' and desttype='table' and sproc is not null",
 						"queryTimeout": "02:00:00",
 						"partitionOption": "None"
 					},
