@@ -243,7 +243,18 @@
 									"storeSettings": {
 										"type": "AzureBlobStorageReadSettings",
 										"recursive": true,
-										"wildcardFolderPath": "@item().SRC_SERVER",
+										"modifiedDatetimeStart": {
+											"value": "@addToTime(utcnow(),-1,'Day')",
+											"type": "Expression"
+										},
+										"modifiedDatetimeEnd": {
+											"value": "@utcnow()",
+											"type": "Expression"
+										},
+										"wildcardFolderPath": {
+											"value": "@item().SRC_SERVER",
+											"type": "Expression"
+										},
 										"wildcardFileName": "*.csv",
 										"enablePartitionDiscovery": false
 									},
@@ -254,7 +265,8 @@
 								"sink": {
 									"type": "DelimitedTextSink",
 									"storeSettings": {
-										"type": "AzureBlobStorageWriteSettings"
+										"type": "AzureBlobStorageWriteSettings",
+										"copyBehavior": "PreserveHierarchy"
 									},
 									"formatSettings": {
 										"type": "DelimitedTextWriteSettings",
@@ -274,14 +286,20 @@
 							},
 							"inputs": [
 								{
-									"referenceName": "blobds",
-									"type": "DatasetReference"
+									"referenceName": "Folder",
+									"type": "DatasetReference",
+									"parameters": {
+										"foldername": "@item().SRC_SERVER"
+									}
 								}
 							],
 							"outputs": [
 								{
 									"referenceName": "Folder",
-									"type": "DatasetReference"
+									"type": "DatasetReference",
+									"parameters": {
+										"foldername": "Archive"
+									}
 								}
 							]
 						},
@@ -306,7 +324,7 @@
 							"userProperties": [],
 							"typeProperties": {
 								"dataset": {
-									"referenceName": "blobds",
+									"referenceName": "Folder",
 									"type": "DatasetReference",
 									"parameters": {
 										"foldername": {
@@ -328,6 +346,10 @@
 									"recursive": true,
 									"modifiedDatetimeStart": {
 										"value": "@addToTime(utcnow(),-1,'Day')",
+										"type": "Expression"
+									},
+									"modifiedDatetimeEnd": {
+										"value": "@utcnow()",
 										"type": "Expression"
 									},
 									"wildcardFileName": "*.csv",
