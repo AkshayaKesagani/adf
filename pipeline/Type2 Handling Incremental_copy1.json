@@ -40,14 +40,17 @@
 										"type": "AzureBlobStorageReadSettings",
 										"recursive": true,
 										"modifiedDatetimeStart": {
-											"value": "@item().watermark_value",
+											"value": "@addToTime(utcnow(),-1,'Day')",
 											"type": "Expression"
 										},
 										"modifiedDatetimeEnd": {
-											"value": "@pipeline().TriggerTime",
+											"value": "@utcnow()",
 											"type": "Expression"
 										},
-										"wildcardFolderPath": "Table1",
+										"wildcardFolderPath": {
+											"value": "@item().SRC_SERVER",
+											"type": "Expression"
+										},
 										"wildcardFileName": "*.csv",
 										"enablePartitionDiscovery": false
 									},
@@ -79,16 +82,12 @@
 											"referenceName": "akshayasa_ls",
 											"type": "LinkedServiceReference"
 										},
-										"path": "files/warnings"
+										"path": "files/warnings_file"
 									}
 								},
 								"translator": {
-									"type": "TabularTranslator",
-									"typeConversion": true,
-									"typeConversionSettings": {
-										"allowDataTruncation": true,
-										"treatBooleanAsNumber": false
-									}
+									"value": "@json(item().MAPPINGS)",
+									"type": "Expression"
 								}
 							},
 							"inputs": [
@@ -170,11 +169,11 @@
 								"type": "LinkedServiceReference",
 								"parameters": {
 									"servername": {
-										"value": "@item().SRC_SERVER",
+										"value": "@item().DES_SERVER",
 										"type": "Expression"
 									},
 									"databasename": {
-										"value": "@item().SRC_DB",
+										"value": "@item().DES_DB",
 										"type": "Expression"
 									},
 									"secretname": {
@@ -185,62 +184,6 @@
 										"value": "@item().USERNAME",
 										"type": "Expression"
 									}
-								}
-							}
-						},
-						{
-							"name": "Updating control_table watermark column",
-							"type": "SqlServerStoredProcedure",
-							"dependsOn": [
-								{
-									"activity": "Get lastmodified time of files",
-									"dependencyConditions": [
-										"Succeeded"
-									]
-								}
-							],
-							"policy": {
-								"timeout": "0.12:00:00",
-								"retry": 0,
-								"retryIntervalInSeconds": 30,
-								"secureOutput": false,
-								"secureInput": false
-							},
-							"userProperties": [],
-							"typeProperties": {
-								"storedProcedureName": "[dbo].[UPDATE_CONTROL_TABLE]",
-								"storedProcedureParameters": {
-									"TABLENAME": {
-										"value": {
-											"value": "@item().SRC_TB",
-											"type": "Expression"
-										},
-										"type": "String"
-									},
-									"LastModifiedTime": {
-										"value": {
-											"value": "@activity('Get lastmodified time of files').output",
-											"type": "Expression"
-										},
-										"type": "Datetime"
-									},
-									"Taskname": {
-										"value": {
-											"value": "@item().TASKNAME",
-											"type": "Expression"
-										},
-										"type": "String"
-									}
-								}
-							},
-							"linkedServiceName": {
-								"referenceName": "AzureSqlDatabase",
-								"type": "LinkedServiceReference",
-								"parameters": {
-									"servername": "azure-training-sqlserver.database.windows.net",
-									"databasename": "demo",
-									"secretname": "sqlserver1",
-									"Username": "training"
 								}
 							}
 						},
@@ -276,11 +219,78 @@
 							}
 						},
 						{
-							"name": "Get lastmodified time of files",
-							"type": "GetMetadata",
+							"name": "Moving processed files",
+							"type": "Copy",
 							"dependsOn": [
 								{
 									"activity": "Loading data into dim",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "DelimitedTextSource",
+									"storeSettings": {
+										"type": "AzureBlobStorageReadSettings",
+										"recursive": true,
+										"wildcardFolderPath": "@item().SRC_SERVER",
+										"wildcardFileName": "*.csv",
+										"enablePartitionDiscovery": false
+									},
+									"formatSettings": {
+										"type": "DelimitedTextReadSettings"
+									}
+								},
+								"sink": {
+									"type": "DelimitedTextSink",
+									"storeSettings": {
+										"type": "AzureBlobStorageWriteSettings"
+									},
+									"formatSettings": {
+										"type": "DelimitedTextWriteSettings",
+										"quoteAllText": true,
+										"fileExtension": ".txt"
+									}
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "blobds",
+									"type": "DatasetReference"
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "Folder",
+									"type": "DatasetReference"
+								}
+							]
+						},
+						{
+							"name": "Deleting processed files",
+							"type": "Delete",
+							"dependsOn": [
+								{
+									"activity": "Moving processed files",
 									"dependencyConditions": [
 										"Succeeded"
 									]
@@ -299,25 +309,29 @@
 									"referenceName": "blobds",
 									"type": "DatasetReference",
 									"parameters": {
-										"filename": {
-											"value": "@concat('year=',utcnow('yyyy'),'/month=',utcnow('MM'),'/day=',utcnow('dd'),'/',item().SRC_TB,'.csv')",
-											"type": "Expression"
-										},
 										"foldername": {
 											"value": "@item().SRC_SERVER",
 											"type": "Expression"
 										}
 									}
 								},
-								"fieldList": [
-									"lastModified"
-								],
+								"logStorageSettings": {
+									"linkedServiceName": {
+										"referenceName": "akshayasa_ls",
+										"type": "LinkedServiceReference"
+									},
+									"path": "files/deletelogs"
+								},
+								"enableLogging": true,
 								"storeSettings": {
 									"type": "AzureBlobStorageReadSettings",
+									"recursive": true,
+									"modifiedDatetimeStart": {
+										"value": "@addToTime(utcnow(),-1,'Day')",
+										"type": "Expression"
+									},
+									"wildcardFileName": "*.csv",
 									"enablePartitionDiscovery": false
-								},
-								"formatSettings": {
-									"type": "DelimitedTextReadSettings"
 								}
 							}
 						}
