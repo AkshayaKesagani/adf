@@ -69,9 +69,13 @@
 							],
 							"userProperties": [],
 							"typeProperties": {
+								"expression": {
+									"value": "@activity('Check if the folder exists').output.exists",
+									"type": "Expression"
+								},
 								"ifTrueActivities": [
 									{
-										"name": "Source to destination copy_copy1",
+										"name": "Source to destination copy",
 										"type": "Copy",
 										"dependsOn": [],
 										"policy": {
@@ -193,7 +197,7 @@
 										"type": "SqlServerStoredProcedure",
 										"dependsOn": [
 											{
-												"activity": "Source to destination copy_copy1",
+												"activity": "Source to destination copy",
 												"dependencyConditions": [
 													"Succeeded"
 												]
@@ -380,7 +384,7 @@
 										"type": "WebActivity",
 										"dependsOn": [
 											{
-												"activity": "Source to destination copy_copy1",
+												"activity": "Source to destination copy",
 												"dependencyConditions": [
 													"Failed"
 												]
@@ -401,7 +405,7 @@
 												"Content-type": "application/json"
 											},
 											"body": {
-												"value": "{\n    \"PipelineName\":\"@{pipeline().Pipeline}\",\n    \"ErrorMessage\":\"@{activity('Source to destination copy').Error.Message}\",\n    \"DataFactoryName\":\"@{pipeline().DataFactory}\",\n    \"PipelineRundId\":\"@{pipeline().RunId}\"\n}",
+												"value": "{\n    \"PipelineName\":\"@{pipeline().Pipeline}\",\n    \"ErrorMessage\":\"@{activity('Source to destination copy').Error.Message}\",\n    \"DataFactory\":\"@{pipeline().DataFactory}\",\n    \"RunId\":\"@{pipeline().RunId}\"\n}",
 												"type": "Expression"
 											}
 										}
