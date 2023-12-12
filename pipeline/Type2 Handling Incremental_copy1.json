@@ -49,6 +49,7 @@
 								],
 								"storeSettings": {
 									"type": "AzureBlobStorageReadSettings",
+									"recursive": true,
 									"enablePartitionDiscovery": false
 								},
 								"formatSettings": {
@@ -145,18 +146,8 @@
 										},
 										"inputs": [
 											{
-												"referenceName": "blobds",
-												"type": "DatasetReference",
-												"parameters": {
-													"filename": {
-														"value": "@concat('year=',utcnow('yyyy'),'/month=',utcnow('MM'),'/day=',utcnow('dd'),'/',item().SRC_TB,'.csv')",
-														"type": "Expression"
-													},
-													"foldername": {
-														"value": "@item().SRC_SERVER",
-														"type": "Expression"
-													}
-												}
+												"referenceName": "Folder",
+												"type": "DatasetReference"
 											}
 										],
 										"outputs": [
