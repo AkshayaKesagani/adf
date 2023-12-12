@@ -22,298 +22,9 @@
 					"isSequential": true,
 					"activities": [
 						{
-							"name": "Source to destination copy",
-							"type": "Copy",
+							"name": "Check if the folder exists",
+							"type": "GetMetadata",
 							"dependsOn": [],
-							"policy": {
-								"timeout": "0.12:00:00",
-								"retry": 0,
-								"retryIntervalInSeconds": 30,
-								"secureOutput": false,
-								"secureInput": false
-							},
-							"userProperties": [],
-							"typeProperties": {
-								"source": {
-									"type": "DelimitedTextSource",
-									"storeSettings": {
-										"type": "AzureBlobStorageReadSettings",
-										"recursive": true,
-										"modifiedDatetimeStart": {
-											"value": "@addToTime(utcnow(),-1,'Day')",
-											"type": "Expression"
-										},
-										"modifiedDatetimeEnd": {
-											"value": "@utcnow()",
-											"type": "Expression"
-										},
-										"wildcardFolderPath": {
-											"value": "@item().SRC_SERVER",
-											"type": "Expression"
-										},
-										"wildcardFileName": "*.csv",
-										"enablePartitionDiscovery": false
-									},
-									"formatSettings": {
-										"type": "DelimitedTextReadSettings"
-									}
-								},
-								"sink": {
-									"type": "AzureSqlSink",
-									"preCopyScript": {
-										"value": "Truncate table @{item().des_tb}",
-										"type": "Expression"
-									},
-									"writeBehavior": "insert",
-									"sqlWriterUseTableLock": false,
-									"tableOption": "autoCreate",
-									"disableMetricsCollection": false
-								},
-								"enableStaging": false,
-								"enableSkipIncompatibleRow": true,
-								"logSettings": {
-									"enableCopyActivityLog": true,
-									"copyActivityLogSettings": {
-										"logLevel": "Warning",
-										"enableReliableLogging": false
-									},
-									"logLocationSettings": {
-										"linkedServiceName": {
-											"referenceName": "akshayasa_ls",
-											"type": "LinkedServiceReference"
-										},
-										"path": "files/warnings_file"
-									}
-								},
-								"translator": {
-									"value": "@json(item().MAPPINGS)",
-									"type": "Expression"
-								}
-							},
-							"inputs": [
-								{
-									"referenceName": "blobds",
-									"type": "DatasetReference",
-									"parameters": {
-										"filename": {
-											"value": "@concat('year=',utcnow('yyyy'),'/month=',utcnow('MM'),'/day=',utcnow('dd'),'/',item().SRC_TB,'.csv')",
-											"type": "Expression"
-										},
-										"foldername": {
-											"value": "@item().SRC_SERVER",
-											"type": "Expression"
-										}
-									}
-								}
-							],
-							"outputs": [
-								{
-									"referenceName": "sqldatads",
-									"type": "DatasetReference",
-									"parameters": {
-										"servername": {
-											"value": "@item().DES_SERVER",
-											"type": "Expression"
-										},
-										"username": {
-											"value": "@item().USERNAME",
-											"type": "Expression"
-										},
-										"schemaname": {
-											"value": "@item().des_schema",
-											"type": "Expression"
-										},
-										"databasename": {
-											"value": "@item().des_db",
-											"type": "Expression"
-										},
-										"secretname": {
-											"value": "@item().SECRETNAME",
-											"type": "Expression"
-										},
-										"tablename": {
-											"value": "@item().DES_TB",
-											"type": "Expression"
-										}
-									}
-								}
-							]
-						},
-						{
-							"name": "Loading data into dim",
-							"type": "SqlServerStoredProcedure",
-							"dependsOn": [
-								{
-									"activity": "Source to destination copy",
-									"dependencyConditions": [
-										"Succeeded"
-									]
-								}
-							],
-							"policy": {
-								"timeout": "0.12:00:00",
-								"retry": 0,
-								"retryIntervalInSeconds": 30,
-								"secureOutput": false,
-								"secureInput": false
-							},
-							"userProperties": [],
-							"typeProperties": {
-								"storedProcedureName": {
-									"value": "@item().SPROC",
-									"type": "Expression"
-								}
-							},
-							"linkedServiceName": {
-								"referenceName": "AzureSqlDatabase",
-								"type": "LinkedServiceReference",
-								"parameters": {
-									"servername": {
-										"value": "@item().DES_SERVER",
-										"type": "Expression"
-									},
-									"databasename": {
-										"value": "@item().DES_DB",
-										"type": "Expression"
-									},
-									"secretname": {
-										"value": "@item().SECRETNAME",
-										"type": "Expression"
-									},
-									"Username": {
-										"value": "@item().USERNAME",
-										"type": "Expression"
-									}
-								}
-							}
-						},
-						{
-							"name": "Send Email on failure",
-							"type": "WebActivity",
-							"dependsOn": [
-								{
-									"activity": "Source to destination copy",
-									"dependencyConditions": [
-										"Failed"
-									]
-								}
-							],
-							"policy": {
-								"timeout": "0.12:00:00",
-								"retry": 0,
-								"retryIntervalInSeconds": 30,
-								"secureOutput": false,
-								"secureInput": false
-							},
-							"userProperties": [],
-							"typeProperties": {
-								"url": "https://prod-20.centralindia.logic.azure.com:443/workflows/e3adea16cbcb4721b63d93037ca154ec/triggers/manual/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=WwY1QEGOgVeJS7cu5AALEuhK-xHUd6es5Q0Jmepy9xc",
-								"method": "POST",
-								"headers": {
-									"Content-type": "application/json"
-								},
-								"body": {
-									"value": "{\n    \"PipelineName\":\"@{pipeline().Pipeline}\",\n    \"ErrorMessage\":\"@{activity('Source to destination copy').Error.Message}\",\n    \"DataFactoryName\":\"@{pipeline().DataFactory}\",\n    \"PipelineRundId\":\"@{pipeline().RunId}\"\n}",
-									"type": "Expression"
-								}
-							}
-						},
-						{
-							"name": "Moving processed files",
-							"type": "Copy",
-							"dependsOn": [
-								{
-									"activity": "Loading data into dim",
-									"dependencyConditions": [
-										"Succeeded"
-									]
-								}
-							],
-							"policy": {
-								"timeout": "0.12:00:00",
-								"retry": 0,
-								"retryIntervalInSeconds": 30,
-								"secureOutput": false,
-								"secureInput": false
-							},
-							"userProperties": [],
-							"typeProperties": {
-								"source": {
-									"type": "DelimitedTextSource",
-									"storeSettings": {
-										"type": "AzureBlobStorageReadSettings",
-										"recursive": true,
-										"modifiedDatetimeStart": {
-											"value": "@addToTime(utcnow(),-1,'Day')",
-											"type": "Expression"
-										},
-										"modifiedDatetimeEnd": {
-											"value": "@utcnow()",
-											"type": "Expression"
-										},
-										"wildcardFolderPath": {
-											"value": "@item().SRC_SERVER",
-											"type": "Expression"
-										},
-										"wildcardFileName": "*.csv",
-										"enablePartitionDiscovery": false
-									},
-									"formatSettings": {
-										"type": "DelimitedTextReadSettings"
-									}
-								},
-								"sink": {
-									"type": "DelimitedTextSink",
-									"storeSettings": {
-										"type": "AzureBlobStorageWriteSettings",
-										"copyBehavior": "PreserveHierarchy"
-									},
-									"formatSettings": {
-										"type": "DelimitedTextWriteSettings",
-										"quoteAllText": true,
-										"fileExtension": ".txt"
-									}
-								},
-								"enableStaging": false,
-								"translator": {
-									"type": "TabularTranslator",
-									"typeConversion": true,
-									"typeConversionSettings": {
-										"allowDataTruncation": true,
-										"treatBooleanAsNumber": false
-									}
-								}
-							},
-							"inputs": [
-								{
-									"referenceName": "Folder",
-									"type": "DatasetReference",
-									"parameters": {
-										"foldername": "@item().SRC_SERVER"
-									}
-								}
-							],
-							"outputs": [
-								{
-									"referenceName": "Folder",
-									"type": "DatasetReference",
-									"parameters": {
-										"foldername": "Archive"
-									}
-								}
-							]
-						},
-						{
-							"name": "Deleting processed files",
-							"type": "Delete",
-							"dependsOn": [
-								{
-									"activity": "Moving processed files",
-									"dependencyConditions": [
-										"Succeeded"
-									]
-								}
-							],
 							"policy": {
 								"timeout": "0.12:00:00",
 								"retry": 0,
@@ -333,28 +44,369 @@
 										}
 									}
 								},
-								"logStorageSettings": {
-									"linkedServiceName": {
-										"referenceName": "akshayasa_ls",
-										"type": "LinkedServiceReference"
-									},
-									"path": "files/deletelogs"
-								},
-								"enableLogging": true,
+								"fieldList": [
+									"exists"
+								],
 								"storeSettings": {
 									"type": "AzureBlobStorageReadSettings",
-									"recursive": true,
-									"modifiedDatetimeStart": {
-										"value": "@addToTime(utcnow(),-1,'Day')",
-										"type": "Expression"
-									},
-									"modifiedDatetimeEnd": {
-										"value": "@utcnow()",
-										"type": "Expression"
-									},
-									"wildcardFileName": "*.csv",
 									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "DelimitedTextReadSettings"
 								}
+							}
+						},
+						{
+							"name": "On folder existence",
+							"type": "IfCondition",
+							"dependsOn": [
+								{
+									"activity": "Check if the folder exists",
+									"dependencyConditions": [
+										"Succeeded"
+									]
+								}
+							],
+							"userProperties": [],
+							"typeProperties": {
+								"ifTrueActivities": [
+									{
+										"name": "Source to destination copy_copy1",
+										"type": "Copy",
+										"dependsOn": [],
+										"policy": {
+											"timeout": "0.12:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"source": {
+												"type": "DelimitedTextSource",
+												"storeSettings": {
+													"type": "AzureBlobStorageReadSettings",
+													"recursive": true,
+													"modifiedDatetimeStart": {
+														"value": "@addToTime(utcnow(),-1,'Day')",
+														"type": "Expression"
+													},
+													"modifiedDatetimeEnd": {
+														"value": "@utcnow()",
+														"type": "Expression"
+													},
+													"wildcardFolderPath": {
+														"value": "@item().SRC_SERVER",
+														"type": "Expression"
+													},
+													"wildcardFileName": "*.csv",
+													"enablePartitionDiscovery": false
+												},
+												"formatSettings": {
+													"type": "DelimitedTextReadSettings"
+												}
+											},
+											"sink": {
+												"type": "AzureSqlSink",
+												"preCopyScript": {
+													"value": "Truncate table @{item().des_tb}",
+													"type": "Expression"
+												},
+												"writeBehavior": "insert",
+												"sqlWriterUseTableLock": false,
+												"tableOption": "autoCreate",
+												"disableMetricsCollection": false
+											},
+											"enableStaging": false,
+											"enableSkipIncompatibleRow": true,
+											"logSettings": {
+												"enableCopyActivityLog": true,
+												"copyActivityLogSettings": {
+													"logLevel": "Warning",
+													"enableReliableLogging": false
+												},
+												"logLocationSettings": {
+													"linkedServiceName": {
+														"referenceName": "akshayasa_ls",
+														"type": "LinkedServiceReference"
+													},
+													"path": "files/warnings_file"
+												}
+											},
+											"translator": {
+												"value": "@json(item().MAPPINGS)",
+												"type": "Expression"
+											}
+										},
+										"inputs": [
+											{
+												"referenceName": "blobds",
+												"type": "DatasetReference",
+												"parameters": {
+													"filename": {
+														"value": "@concat('year=',utcnow('yyyy'),'/month=',utcnow('MM'),'/day=',utcnow('dd'),'/',item().SRC_TB,'.csv')",
+														"type": "Expression"
+													},
+													"foldername": {
+														"value": "@item().SRC_SERVER",
+														"type": "Expression"
+													}
+												}
+											}
+										],
+										"outputs": [
+											{
+												"referenceName": "sqldatads",
+												"type": "DatasetReference",
+												"parameters": {
+													"servername": {
+														"value": "@item().DES_SERVER",
+														"type": "Expression"
+													},
+													"username": {
+														"value": "@item().USERNAME",
+														"type": "Expression"
+													},
+													"schemaname": {
+														"value": "@item().des_schema",
+														"type": "Expression"
+													},
+													"databasename": {
+														"value": "@item().des_db",
+														"type": "Expression"
+													},
+													"secretname": {
+														"value": "@item().SECRETNAME",
+														"type": "Expression"
+													},
+													"tablename": {
+														"value": "@item().DES_TB",
+														"type": "Expression"
+													}
+												}
+											}
+										]
+									},
+									{
+										"name": "Loading data into dim_copy1",
+										"type": "SqlServerStoredProcedure",
+										"dependsOn": [
+											{
+												"activity": "Source to destination copy_copy1",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"policy": {
+											"timeout": "0.12:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"storedProcedureName": {
+												"value": "@item().SPROC",
+												"type": "Expression"
+											}
+										},
+										"linkedServiceName": {
+											"referenceName": "AzureSqlDatabase",
+											"type": "LinkedServiceReference",
+											"parameters": {
+												"servername": {
+													"value": "@item().DES_SERVER",
+													"type": "Expression"
+												},
+												"databasename": {
+													"value": "@item().DES_DB",
+													"type": "Expression"
+												},
+												"secretname": {
+													"value": "@item().SECRETNAME",
+													"type": "Expression"
+												},
+												"Username": {
+													"value": "@item().USERNAME",
+													"type": "Expression"
+												}
+											}
+										}
+									},
+									{
+										"name": "Moving processed files_copy1",
+										"type": "Copy",
+										"dependsOn": [
+											{
+												"activity": "Loading data into dim_copy1",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"policy": {
+											"timeout": "0.12:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"source": {
+												"type": "DelimitedTextSource",
+												"storeSettings": {
+													"type": "AzureBlobStorageReadSettings",
+													"recursive": true,
+													"modifiedDatetimeStart": {
+														"value": "@addToTime(utcnow(),-1,'Day')",
+														"type": "Expression"
+													},
+													"modifiedDatetimeEnd": {
+														"value": "@utcnow()",
+														"type": "Expression"
+													},
+													"wildcardFolderPath": {
+														"value": "@item().SRC_SERVER",
+														"type": "Expression"
+													},
+													"wildcardFileName": "*.csv",
+													"enablePartitionDiscovery": false
+												},
+												"formatSettings": {
+													"type": "DelimitedTextReadSettings"
+												}
+											},
+											"sink": {
+												"type": "DelimitedTextSink",
+												"storeSettings": {
+													"type": "AzureBlobStorageWriteSettings",
+													"copyBehavior": "PreserveHierarchy"
+												},
+												"formatSettings": {
+													"type": "DelimitedTextWriteSettings",
+													"quoteAllText": true,
+													"fileExtension": ".txt"
+												}
+											},
+											"enableStaging": false,
+											"translator": {
+												"type": "TabularTranslator",
+												"typeConversion": true,
+												"typeConversionSettings": {
+													"allowDataTruncation": true,
+													"treatBooleanAsNumber": false
+												}
+											}
+										},
+										"inputs": [
+											{
+												"referenceName": "Folder",
+												"type": "DatasetReference",
+												"parameters": {
+													"foldername": "@item().SRC_SERVER"
+												}
+											}
+										],
+										"outputs": [
+											{
+												"referenceName": "Folder",
+												"type": "DatasetReference",
+												"parameters": {
+													"foldername": "Archive"
+												}
+											}
+										]
+									},
+									{
+										"name": "Deleting processed files_copy1",
+										"type": "Delete",
+										"dependsOn": [
+											{
+												"activity": "Moving processed files_copy1",
+												"dependencyConditions": [
+													"Succeeded"
+												]
+											}
+										],
+										"policy": {
+											"timeout": "0.12:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"dataset": {
+												"referenceName": "Folder",
+												"type": "DatasetReference",
+												"parameters": {
+													"foldername": {
+														"value": "@item().SRC_SERVER",
+														"type": "Expression"
+													}
+												}
+											},
+											"logStorageSettings": {
+												"linkedServiceName": {
+													"referenceName": "akshayasa_ls",
+													"type": "LinkedServiceReference"
+												},
+												"path": "files/deletelogs"
+											},
+											"enableLogging": true,
+											"storeSettings": {
+												"type": "AzureBlobStorageReadSettings",
+												"recursive": true,
+												"modifiedDatetimeStart": {
+													"value": "@addToTime(utcnow(),-1,'Day')",
+													"type": "Expression"
+												},
+												"modifiedDatetimeEnd": {
+													"value": "@utcnow()",
+													"type": "Expression"
+												},
+												"wildcardFileName": "*.csv",
+												"enablePartitionDiscovery": false
+											}
+										}
+									},
+									{
+										"name": "Send Email on failure_copy1",
+										"type": "WebActivity",
+										"dependsOn": [
+											{
+												"activity": "Source to destination copy_copy1",
+												"dependencyConditions": [
+													"Failed"
+												]
+											}
+										],
+										"policy": {
+											"timeout": "0.12:00:00",
+											"retry": 0,
+											"retryIntervalInSeconds": 30,
+											"secureOutput": false,
+											"secureInput": false
+										},
+										"userProperties": [],
+										"typeProperties": {
+											"url": "https://prod-20.centralindia.logic.azure.com:443/workflows/e3adea16cbcb4721b63d93037ca154ec/triggers/manual/paths/invoke?api-version=2016-10-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=WwY1QEGOgVeJS7cu5AALEuhK-xHUd6es5Q0Jmepy9xc",
+											"method": "POST",
+											"headers": {
+												"Content-type": "application/json"
+											},
+											"body": {
+												"value": "{\n    \"PipelineName\":\"@{pipeline().Pipeline}\",\n    \"ErrorMessage\":\"@{activity('Source to destination copy').Error.Message}\",\n    \"DataFactoryName\":\"@{pipeline().DataFactory}\",\n    \"PipelineRundId\":\"@{pipeline().RunId}\"\n}",
+												"type": "Expression"
+											}
+										}
+									}
+								]
 							}
 						}
 					]
