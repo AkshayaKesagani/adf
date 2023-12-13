@@ -147,7 +147,13 @@
 										"inputs": [
 											{
 												"referenceName": "Folder",
-												"type": "DatasetReference"
+												"type": "DatasetReference",
+												"parameters": {
+													"foldername": {
+														"value": "@item().SRC_SERVER",
+														"type": "Expression"
+													}
+												}
 											}
 										],
 										"outputs": [
