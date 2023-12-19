@@ -1,0 +1,9 @@
+{
+	"name": "akshaya-df",
+	"location": "centralindia",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "f37403ae-e298-449d-9cdc-1d3cdd38acd0",
+		"tenantId": "da464968-10f5-4b7b-8217-d6ab822e3949"
+	}
+}

@@ -6,38 +6,81 @@
 			"sources": [
 				{
 					"dataset": {
-						"referenceName": "sqldatads",
+						"referenceName": "files",
 						"type": "DatasetReference"
 					},
-					"name": "source1"
+					"name": "employee"
 				},
 				{
 					"dataset": {
-						"referenceName": "sqldatads",
+						"referenceName": "files",
 						"type": "DatasetReference"
 					},
-					"name": "source2"
+					"name": "department"
 				}
 			],
-			"sinks": [],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "files",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
 			"transformations": [
 				{
-					"name": "lookup1"
+					"name": "depwisegroup"
+				},
+				{
+					"name": "join1"
+				},
+				{
+					"name": "select1"
 				}
 			],
 			"scriptLines": [
-				"source(allowSchemaDrift: true,",
+				"source(output(",
+				"          EmployeeID as short,",
+				"          FirstName as string,",
+				"          LastName as string,",
+				"          DepartmentId as short",
+				"     ),",
+				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
-				"     moveFiles: ['',''],",
-				"     isolationLevel: 'READ_UNCOMMITTED',",
-				"     format: 'table') ~> source1",
-				"source(allowSchemaDrift: true,",
+				"     ignoreNoFilesFound: false) ~> employee",
+				"source(output(",
+				"          DepartmentId as short,",
+				"          DepName as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
-				"     isolationLevel: 'READ_UNCOMMITTED',",
-				"     format: 'table') ~> source2",
-				"source1, source2 lookup(ERROR_FUNCTION('') == ERROR_FUNCTION(''),",
-				"     multiple: true,",
-				"     broadcast: 'auto')~> lookup1"
+				"     ignoreNoFilesFound: false) ~> department",
+				"employee aggregate(groupBy(Department = toString(byName('DepartmentId'),'employee')),",
+				"     Count = count(toString(byName('EmployeeID')))) ~> depwisegroup",
+				"depwisegroup, department join(Department == toString(byName('DepartmentId', 'department')),",
+				"     joinType:'inner',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> join1",
+				"join1 select(mapColumn(",
+				"          Department,",
+				"          DepName,",
+				"          Count",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select1",
+				"select1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     partitionFileNames:['DepwiseGroup.csv'],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     mapColumn(",
+				"          Department,",
+				"          DepName,",
+				"          Count",
+				"     ),",
+				"     partitionBy('hash', 1)) ~> sink1"
 			]
 		}
 	}
