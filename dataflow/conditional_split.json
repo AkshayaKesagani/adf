@@ -1,0 +1,85 @@
+{
+	"name": "conditional_split",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "files",
+						"type": "DatasetReference"
+					},
+					"name": "Employee"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "files",
+						"type": "DatasetReference"
+					},
+					"name": "Hr"
+				},
+				{
+					"dataset": {
+						"referenceName": "files",
+						"type": "DatasetReference"
+					},
+					"name": "It"
+				},
+				{
+					"dataset": {
+						"referenceName": "files",
+						"type": "DatasetReference"
+					},
+					"name": "Finance"
+				},
+				{
+					"dataset": {
+						"referenceName": "files",
+						"type": "DatasetReference"
+					},
+					"name": "Other"
+				}
+			],
+			"transformations": [
+				{
+					"name": "split1"
+				}
+			],
+			"scriptLines": [
+				"source(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> Employee",
+				"Employee split(equals(toString(byName('DepartmentId')), '3'),",
+				"     equals(toString(byName('DepartmentId')), '1'),",
+				"     equals(toString(byName('DepartmentId')), '2'),",
+				"     disjoint: true) ~> split1@(HR, It, Finance, Others)",
+				"split1@HR sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     partitionFileNames:['Hremployees.csv'],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     partitionBy('hash', 1)) ~> Hr",
+				"split1@It sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     partitionFileNames:['ItEmployees.csv'],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     partitionBy('hash', 1)) ~> It",
+				"split1@Finance sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     partitionFileNames:['Finance.csv'],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     partitionBy('hash', 1)) ~> Finance",
+				"split1@Others sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     partitionFileNames:['Other.csv'],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     partitionBy('hash', 1)) ~> Other"
+			]
+		}
+	}
+}

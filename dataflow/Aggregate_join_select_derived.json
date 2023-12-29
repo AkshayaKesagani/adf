@@ -1,5 +1,5 @@
 {
-	"name": "dataflow1",
+	"name": "Aggregate_join_select_derived",
 	"properties": {
 		"type": "MappingDataFlow",
 		"typeProperties": {
@@ -37,18 +37,18 @@
 				},
 				{
 					"name": "select1"
+				},
+				{
+					"name": "derivedColumn1"
 				}
 			],
 			"scriptLines": [
-				"source(output(",
-				"          EmployeeID as short,",
-				"          FirstName as string,",
-				"          LastName as string,",
-				"          DepartmentId as short",
-				"     ),",
-				"     allowSchemaDrift: true,",
+				"source(allowSchemaDrift: true,",
 				"     validateSchema: false,",
-				"     ignoreNoFilesFound: false) ~> employee",
+				"     ignoreNoFilesFound: false,",
+				"     enableCdc: true,",
+				"     mode: 'read',",
+				"     skipInitialLoad: false) ~> employee",
 				"source(output(",
 				"          DepartmentId as short,",
 				"          DepName as string",
@@ -56,13 +56,14 @@
 				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     ignoreNoFilesFound: false) ~> department",
-				"employee aggregate(groupBy(Department = toString(byName('DepartmentId'),'employee')),",
+				"employee aggregate(groupBy(Department = toString(byName('DepartmentId'))),",
 				"     Count = count(toString(byName('EmployeeID')))) ~> depwisegroup",
-				"depwisegroup, department join(Department == toString(byName('DepartmentId', 'department')),",
-				"     joinType:'inner',",
-				"     matchType:'exact',",
-				"     ignoreSpaces: false,",
-				"     broadcast: 'auto')~> join1",
+				"depwisegroup, department join(fuzzyCompare(Department, toString(byName('DepartmentId', 'department')), 84.00),",
+				"     joinType:'left',",
+				"     matchType:'fuzzy',",
+				"     ignoreSpaces: true,",
+				"     scoreColumn:'Score',",
+				"     broadcast: 'off')~> join1",
 				"join1 select(mapColumn(",
 				"          Department,",
 				"          DepName,",
@@ -70,7 +71,8 @@
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> select1",
-				"select1 sink(allowSchemaDrift: true,",
+				"select1 derive(DepartName = upper(toString(byName('DepName')))) ~> derivedColumn1",
+				"derivedColumn1 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     partitionFileNames:['DepwiseGroup.csv'],",
 				"     skipDuplicateMapInputs: true,",
@@ -78,7 +80,8 @@
 				"     mapColumn(",
 				"          Department,",
 				"          DepName,",
-				"          Count",
+				"          Count,",
+				"          DepartName",
 				"     ),",
 				"     partitionBy('hash', 1)) ~> sink1"
 			]

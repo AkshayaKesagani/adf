@@ -3,7 +3,7 @@
 	"properties": {
 		"activities": [
 			{
-				"name": "Data flow1",
+				"name": "Aggregate_join_select_derived",
 				"type": "ExecuteDataFlow",
 				"dependsOn": [],
 				"policy": {
@@ -16,7 +16,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"dataflow": {
-						"referenceName": "dataflow1",
+						"referenceName": "Aggregate_join_select_derived",
 						"type": "DataFlowReference",
 						"datasetParameters": {
 							"employee": {
@@ -30,6 +30,97 @@
 							"sink1": {
 								"foldername": "output",
 								"filename": "DepwiseGroup.csv"
+							}
+						}
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine",
+					"continuationSettings": {
+						"customizedCheckpointKey": "7193b67a-c3c7-428f-87b5-db01f9ecdd14"
+					}
+				}
+			},
+			{
+				"name": "conditional split",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "conditional_split",
+						"type": "DataFlowReference",
+						"datasetParameters": {
+							"Employee": {
+								"foldername": "input",
+								"filename": "Employees.csv"
+							},
+							"Hr": {
+								"foldername": "output",
+								"filename": "HR.csv"
+							},
+							"It": {
+								"foldername": "output",
+								"filename": "It.csv"
+							},
+							"Finance": {
+								"foldername": "output",
+								"filename": "Finance.csv"
+							},
+							"Other": {
+								"foldername": "output",
+								"filename": "Others.csv"
+							}
+						}
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
+			},
+			{
+				"name": "union",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "Union",
+						"type": "DataFlowReference",
+						"datasetParameters": {
+							"HREmployees": {
+								"foldername": "output",
+								"filename": "Hremployees.csv"
+							},
+							"ITEmployees": {
+								"foldername": "output",
+								"filename": "ItEmployees.csv"
+							},
+							"FinanceEmployees": {
+								"foldername": "output",
+								"filename": "Finance.csv"
+							},
+							"CombinedData": {
+								"foldername": "output",
+								"filename": "Combine.csv"
 							}
 						}
 					},

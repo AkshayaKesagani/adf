@@ -2,7 +2,7 @@
 	"name": "files",
 	"properties": {
 		"linkedServiceName": {
-			"referenceName": "blob",
+			"referenceName": "akshayasa1234",
 			"type": "LinkedServiceReference"
 		},
 		"parameters": {
