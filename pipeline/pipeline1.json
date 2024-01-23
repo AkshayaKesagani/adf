@@ -28,6 +28,10 @@
 							"ModifiedBy": {
 								"value": "'@{pipeline().Pipeline}'",
 								"type": "Expression"
+							},
+							"ScheduledTime": {
+								"value": "@pipeline().parameters.ScheduledTime",
+								"type": "Expression"
 							}
 						}
 					},

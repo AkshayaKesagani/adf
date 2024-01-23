@@ -126,7 +126,8 @@
 			"scriptLines": [
 				"parameters{",
 				"     InsertedBy as string,",
-				"     ModifiedBy as string",
+				"     ModifiedBy as string,",
+				"     ScheduledTime as timestamp",
 				"}",
 				"source(output(",
 				"          id as string,",
