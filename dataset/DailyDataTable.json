@@ -1,0 +1,155 @@
+{
+	"name": "DailyDataTable",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "Sql server",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "student_id",
+				"type": "bigint",
+				"precision": 19
+			},
+			{
+				"name": "nationality",
+				"type": "nvarchar"
+			},
+			{
+				"name": "address",
+				"type": "nvarchar"
+			},
+			{
+				"name": "city",
+				"type": "nvarchar"
+			},
+			{
+				"name": "state",
+				"type": "nvarchar"
+			},
+			{
+				"name": "postal_code",
+				"type": "nvarchar"
+			},
+			{
+				"name": "phone_number",
+				"type": "nvarchar"
+			},
+			{
+				"name": "parent_name",
+				"type": "nvarchar"
+			},
+			{
+				"name": "parent_email",
+				"type": "nvarchar"
+			},
+			{
+				"name": "parent_phone",
+				"type": "nvarchar"
+			},
+			{
+				"name": "grade_level",
+				"type": "nvarchar"
+			},
+			{
+				"name": "gpa",
+				"type": "float",
+				"precision": 15
+			},
+			{
+				"name": "attendance_percentage",
+				"type": "float",
+				"precision": 15
+			},
+			{
+				"name": "homework_completed",
+				"type": "float",
+				"precision": 15
+			},
+			{
+				"name": "test_scores",
+				"type": "float",
+				"precision": 15
+			},
+			{
+				"name": "class_rank",
+				"type": "bigint",
+				"precision": 19
+			},
+			{
+				"name": "teacher_name",
+				"type": "nvarchar"
+			},
+			{
+				"name": "course_name",
+				"type": "nvarchar"
+			},
+			{
+				"name": "course_grade",
+				"type": "nvarchar"
+			},
+			{
+				"name": "course_start_date",
+				"type": "nvarchar"
+			},
+			{
+				"name": "course_end_date",
+				"type": "nvarchar"
+			},
+			{
+				"name": "course_duration",
+				"type": "bigint",
+				"precision": 19
+			},
+			{
+				"name": "course_teacher_feedback",
+				"type": "nvarchar"
+			},
+			{
+				"name": "course_student_feedback",
+				"type": "nvarchar"
+			},
+			{
+				"name": "course_materials",
+				"type": "nvarchar"
+			},
+			{
+				"name": "course_attendance",
+				"type": "bit"
+			},
+			{
+				"name": "course_grade_weightage",
+				"type": "float",
+				"precision": 15
+			},
+			{
+				"name": "course_passing_grade",
+				"type": "float",
+				"precision": 15
+			},
+			{
+				"name": "course_completion_status",
+				"type": "bit"
+			},
+			{
+				"name": "LastModified",
+				"type": "nvarchar"
+			},
+			{
+				"name": "LastModifiedBy",
+				"type": "nvarchar"
+			},
+			{
+				"name": "LastRunId",
+				"type": "nvarchar"
+			}
+		],
+		"typeProperties": {
+			"schema": "stage",
+			"table": "DailyData"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

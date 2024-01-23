@@ -1,0 +1,119 @@
+{
+	"name": "sample_json_file",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "Storage account",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"filename": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": {
+					"value": "@dataset().filename",
+					"type": "Expression"
+				},
+				"container": "files"
+			}
+		},
+		"schema": {
+			"type": "object",
+			"properties": {
+				"student_id": {
+					"type": "integer"
+				},
+				"nationality": {
+					"type": "string"
+				},
+				"address": {
+					"type": "string"
+				},
+				"city": {
+					"type": "string"
+				},
+				"state": {
+					"type": "string"
+				},
+				"postal_code": {
+					"type": "string"
+				},
+				"phone_number": {
+					"type": "string"
+				},
+				"parent_name": {
+					"type": "string"
+				},
+				"parent_email": {
+					"type": "string"
+				},
+				"parent_phone": {
+					"type": "string"
+				},
+				"grade_level": {
+					"type": "string"
+				},
+				"gpa": {
+					"type": "number"
+				},
+				"attendance_percentage": {
+					"type": "number"
+				},
+				"homework_completed": {
+					"type": "number"
+				},
+				"test_scores": {
+					"type": "number"
+				},
+				"class_rank": {
+					"type": "integer"
+				},
+				"teacher_name": {
+					"type": "string"
+				},
+				"course_name": {
+					"type": "string"
+				},
+				"course_grade": {
+					"type": "string"
+				},
+				"course_start_date": {
+					"type": "string"
+				},
+				"course_end_date": {
+					"type": "string"
+				},
+				"course_duration": {
+					"type": "integer"
+				},
+				"course_teacher_feedback": {
+					"type": "string"
+				},
+				"course_student_feedback": {
+					"type": "string"
+				},
+				"course_materials": {
+					"type": "string"
+				},
+				"course_attendance": {
+					"type": "boolean"
+				},
+				"course_grade_weightage": {
+					"type": "number"
+				},
+				"course_passing_grade": {
+					"type": "number"
+				},
+				"course_completion_status": {
+					"type": "boolean"
+				}
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}
