@@ -53,21 +53,21 @@
 						"referenceName": "Sql server",
 						"type": "LinkedServiceReference"
 					},
-					"name": "StageStudents"
+					"name": "EdwStudentsSink"
 				},
 				{
 					"linkedService": {
 						"referenceName": "Sql server",
 						"type": "LinkedServiceReference"
 					},
-					"name": "StageCourses"
+					"name": "EdwCoursesSink"
 				},
 				{
 					"linkedService": {
 						"referenceName": "Sql server",
 						"type": "LinkedServiceReference"
 					},
-					"name": "StageGrades"
+					"name": "EdwGradesSink"
 				},
 				{
 					"linkedService": {
@@ -81,7 +81,7 @@
 						"referenceName": "Sql server",
 						"type": "LinkedServiceReference"
 					},
-					"name": "UpdateEdwStudents"
+					"name": "UpdateEdwStudentsSink"
 				}
 			],
 			"transformations": [
@@ -351,8 +351,7 @@
 				"     asc(EdwStudents@MODIFIEDTIME, true),",
 				"     broadcast: 'auto')~> StudentsCheck",
 				"StudentsCheck split(isNull(STUDENTID),",
-				"     isNull(STUDENTID) && !equals(AddingAuditColumnsStudents@HashColumn, EdwStudents@HASHCOLUMN)\r",
-				",",
+				"     isNull(STUDENTID) && !equals(AddingAuditColumnsStudents@HashColumn, EdwStudents@HASHCOLUMN),",
 				"     disjoint: false) ~> StudentsSplit@(Insert, UpdateIf, Update)",
 				"StudentsSplit@UpdateIf alterRow(updateIf(1==1)) ~> StudentWithChanges",
 				"StudentWithChanges derive(MODIFIEDTIME = currentTimestamp()) ~> UpdatingModifiedDate",
@@ -417,7 +416,7 @@
 				"          INSERTEDBY = StudentsSplit@Insert@InsertedBy,",
 				"          MODIFIEDBY = StudentsSplit@Insert@ModifiedBy,",
 				"          INSERTEDTIME = StudentsSplit@Insert@INSERTEDTIME",
-				"     )) ~> StageStudents",
+				"     )) ~> EdwStudentsSink",
 				"CoursesSplit@insert sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     input(",
@@ -446,7 +445,7 @@
 				"          INSERTEDBY = insertedby,",
 				"          MODIFIEDBY = modifiedby,",
 				"          INSERTEDTIME = insertedtime",
-				"     )) ~> StageCourses",
+				"     )) ~> EdwCoursesSink",
 				"GradesSplit@insertGrade sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     input(",
@@ -473,7 +472,7 @@
 				"          INSERTEDBY = GradesSplit@insertGrade@InsertedBy,",
 				"          MODIFIEDBY = GradesSplit@insertGrade@ModifiedBy,",
 				"          INSERTEDTIME = GradesSplit@insertGrade@InsertedTime",
-				"     )) ~> StageGrades",
+				"     )) ~> EdwGradesSink",
 				"Inserts@EdwModesSink sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     input(",
@@ -550,7 +549,7 @@
 				"          MODIFIEDBY = StudentsSplit@UpdateIf@ModifiedBy,",
 				"          INSERTEDTIME = StudentsSplit@UpdateIf@InsertedTime,",
 				"          STUDENTKEY",
-				"     )) ~> UpdateEdwStudents"
+				"     )) ~> UpdateEdwStudentsSink"
 			]
 		}
 	}
