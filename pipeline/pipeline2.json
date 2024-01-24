@@ -1,9 +1,9 @@
 {
-	"name": "pipeline1",
+	"name": "pipeline2",
 	"properties": {
 		"activities": [
 			{
-				"name": "Stage to Students",
+				"name": "Data flow1",
 				"type": "ExecuteDataFlow",
 				"dependsOn": [],
 				"policy": {
@@ -16,15 +16,11 @@
 				"userProperties": [],
 				"typeProperties": {
 					"dataflow": {
-						"referenceName": "StageStudents",
+						"referenceName": "dataflow1",
 						"type": "DataFlowReference",
 						"parameters": {
-							"InsertedBy": {
-								"value": "'@{pipeline().Pipeline}'",
-								"type": "Expression"
-							},
-							"ModifiedBy": {
-								"value": "'@{pipeline().Pipeline}'",
+							"InsertedTime": {
+								"value": "@pipeline().TriggerTime",
 								"type": "Expression"
 							}
 						}
@@ -37,8 +33,6 @@
 				}
 			}
 		],
-		"annotations": [],
-		"lastPublishTime": "2024-01-23T11:24:21Z"
-	},
-	"type": "Microsoft.DataFactory/factories/pipelines"
+		"annotations": []
+	}
 }

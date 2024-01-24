@@ -1,0 +1,107 @@
+{
+	"name": "dataflow1",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"linkedService": {
+						"referenceName": "Sql server",
+						"type": "LinkedServiceReference"
+					},
+					"name": "source1"
+				}
+			],
+			"sinks": [
+				{
+					"linkedService": {
+						"referenceName": "Sql server",
+						"type": "LinkedServiceReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [
+				{
+					"name": "derivedColumn1"
+				}
+			],
+			"scriptLines": [
+				"parameters{",
+				"     InsertedTime as timestamp (currentTimestamp())",
+				"}",
+				"source(output(",
+				"          student_id as long,",
+				"          nationality as string,",
+				"          address as string,",
+				"          city as string,",
+				"          state as string,",
+				"          postal_code as string,",
+				"          phone_number as string,",
+				"          parent_name as string,",
+				"          parent_email as string,",
+				"          parent_phone as string,",
+				"          grade_level as string,",
+				"          gpa as double,",
+				"          attendance_percentage as double,",
+				"          homework_completed as double,",
+				"          test_scores as double,",
+				"          class_rank as long,",
+				"          teacher_name as string,",
+				"          course_name as string,",
+				"          course_grade as string,",
+				"          course_start_date as string,",
+				"          course_end_date as string,",
+				"          course_duration as long,",
+				"          course_teacher_feedback as string,",
+				"          course_student_feedback as string,",
+				"          course_materials as string,",
+				"          course_attendance as boolean,",
+				"          course_grade_weightage as double,",
+				"          course_passing_grade as double,",
+				"          course_completion_status as boolean,",
+				"          LastModified as string,",
+				"          LastModifiedBy as string,",
+				"          LastRunId as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'table',",
+				"     store: 'sqlserver',",
+				"     schemaName: 'stage',",
+				"     tableName: 'DailyData',",
+				"     isolationLevel: 'READ_UNCOMMITTED') ~> source1",
+				"source1 derive(InsertedBy = '',",
+				"          ModifiedBy = '',",
+				"          InsertedTime = $InsertedTime) ~> derivedColumn1",
+				"derivedColumn1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          MODEID as integer,",
+				"          MODENAME as string,",
+				"          INSERTEDBY as string,",
+				"          MODIFIEDBY as string,",
+				"          INSERTEDTIME as timestamp,",
+				"          MODIFIEDTIME as timestamp",
+				"     ),",
+				"     format: 'table',",
+				"     store: 'sqlserver',",
+				"     schemaName: 'edw',",
+				"     tableName: 'MODES',",
+				"     insertable: true,",
+				"     updateable: false,",
+				"     deletable: false,",
+				"     upsertable: false,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          MODENAME = course_materials,",
+				"          INSERTEDBY = InsertedBy,",
+				"          MODIFIEDBY = ModifiedBy,",
+				"          INSERTEDTIME = InsertedTime",
+				"     )) ~> sink1"
+			]
+		}
+	}
+}
