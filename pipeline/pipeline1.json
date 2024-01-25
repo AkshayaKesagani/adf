@@ -1,9 +1,9 @@
 {
-	"name": "Loading Dimensions",
+	"name": "pipeline1",
 	"properties": {
 		"activities": [
 			{
-				"name": "Stage to Students",
+				"name": "Data flow1",
 				"type": "ExecuteDataFlow",
 				"dependsOn": [],
 				"policy": {
@@ -16,7 +16,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"dataflow": {
-						"referenceName": "LoadingDimensions",
+						"referenceName": "LoadingFacts",
 						"type": "DataFlowReference",
 						"parameters": {
 							"InsertedBy": {
@@ -27,7 +27,10 @@
 								"value": "'@{pipeline().Pipeline}'",
 								"type": "Expression"
 							},
-							"InsertedTime": "currentTimestamp()"
+							"InsertedTime": {
+								"value": "@utcnow()",
+								"type": "Expression"
+							}
 						}
 					},
 					"compute": {
@@ -38,8 +41,6 @@
 				}
 			}
 		],
-		"annotations": [],
-		"lastPublishTime": "2024-01-23T11:24:21Z"
-	},
-	"type": "Microsoft.DataFactory/factories/pipelines"
+		"annotations": []
+	}
 }

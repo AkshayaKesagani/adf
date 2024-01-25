@@ -1,5 +1,5 @@
 {
-	"name": "StageStudents",
+	"name": "LoadingDimensions",
 	"properties": {
 		"type": "MappingDataFlow",
 		"typeProperties": {
@@ -131,12 +131,6 @@
 					"name": "StudentsSplit"
 				},
 				{
-					"name": "StudentWithChanges"
-				},
-				{
-					"name": "UpdatingModifiedDate"
-				},
-				{
 					"name": "CheckingForGrades"
 				},
 				{
@@ -150,12 +144,22 @@
 				},
 				{
 					"name": "CoursesSplit"
+				},
+				{
+					"name": "alterRow1"
+				},
+				{
+					"name": "derivedColumn1"
+				},
+				{
+					"name": "Insertime"
 				}
 			],
 			"scriptLines": [
 				"parameters{",
 				"     InsertedBy as string,",
-				"     ModifiedBy as string",
+				"     ModifiedBy as string,",
+				"     InsertedTime as timestamp (currentTimestamp())",
 				"}",
 				"source(output(",
 				"          id as string,",
@@ -248,10 +252,9 @@
 				"     ),",
 				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
-				"     format: 'table',",
+				"     format: 'query',",
 				"     store: 'sqlserver',",
-				"     schemaName: 'edw',",
-				"     tableName: 'STUDENTS',",
+				"     query: 'select * from edw.Students where MODIFIEDTIME is null',",
 				"     isolationLevel: 'READ_UNCOMMITTED') ~> EdwStudents",
 				"source(output(",
 				"          GRADEID as integer,",
@@ -287,7 +290,7 @@
 				"FetchingRequiredColumns derive(InsertedBy = $InsertedBy,",
 				"          ModifiedBy = $ModifiedBy,",
 				"          InsertedTime = currentTimestamp(),",
-				"          HashColumn = md5(email+address+city+state+postal_code+phone_number)) ~> AddingAuditColumnsStudents",
+				"          HashColumn = md5(email,address,postal_code,phone_number)) ~> AddingAuditColumnsStudents",
 				"StageDailyData, DailyData join(id == toString(student_id),",
 				"     joinType:'inner',",
 				"     matchType:'exact',",
@@ -348,13 +351,11 @@
 				"AddingAuditColumnsStudents, EdwStudents lookup(toInteger(id) == STUDENTID,",
 				"     multiple: false,",
 				"     pickup: 'last',",
-				"     asc(EdwStudents@MODIFIEDTIME, true),",
+				"     asc(EdwStudents@MODIFIEDTIME, false),",
 				"     broadcast: 'auto')~> StudentsCheck",
-				"StudentsCheck split(isNull(STUDENTID),",
-				"     isNull(STUDENTID) && !equals(AddingAuditColumnsStudents@HashColumn, EdwStudents@HASHCOLUMN),",
-				"     disjoint: false) ~> StudentsSplit@(Insert, UpdateIf, Update)",
-				"StudentsSplit@UpdateIf alterRow(updateIf(1==1)) ~> StudentWithChanges",
-				"StudentWithChanges derive(MODIFIEDTIME = currentTimestamp()) ~> UpdatingModifiedDate",
+				"StudentsCheck split(isNull(STUDENTID) || (equals(id,toString(STUDENTID)) && AddingAuditColumnsStudents@HashColumn!=EdwStudents@HASHCOLUMN),",
+				"     (toInteger(id)==STUDENTID) && !equals(AddingAuditColumnsStudents@HashColumn, EdwStudents@HASHCOLUMN),",
+				"     disjoint: true) ~> StudentsSplit@(Insert, UpdateIf)",
 				"AddingAuditColumnsGrades, EdwGrades lookup(grade_level == GRADENAME,",
 				"     multiple: false,",
 				"     pickup: 'any',",
@@ -371,7 +372,10 @@
 				"     broadcast: 'auto')~> CheckingForCourses",
 				"CheckingForCourses split(isNull(COURSEID),",
 				"     disjoint: false) ~> CoursesSplit@(insert, default)",
-				"StudentsSplit@Insert sink(allowSchemaDrift: true,",
+				"derivedColumn1 alterRow(updateIf(1==1)) ~> alterRow1",
+				"StudentsSplit@UpdateIf derive(MODIFIEDTIME = $InsertedTime) ~> derivedColumn1",
+				"StudentsSplit@Insert derive(InsertedTime = $InsertedTime) ~> Insertime",
+				"Insertime sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     input(",
 				"          STUDENTKEY as integer,",
@@ -400,6 +404,7 @@
 				"     deletable: false,",
 				"     upsertable: false,",
 				"     skipDuplicateMapInputs: true,",
+				"     saveOrder: 2,",
 				"     errorHandlingOption: 'stopOnFirstError',",
 				"     mapColumn(",
 				"          STUDENTID = id,",
@@ -415,7 +420,7 @@
 				"          HASHCOLUMN = StudentsSplit@Insert@HashColumn,",
 				"          INSERTEDBY = StudentsSplit@Insert@InsertedBy,",
 				"          MODIFIEDBY = StudentsSplit@Insert@ModifiedBy,",
-				"          INSERTEDTIME = StudentsSplit@Insert@INSERTEDTIME",
+				"          INSERTEDTIME = Insertime@InsertedTime",
 				"     )) ~> EdwStudentsSink",
 				"CoursesSplit@insert sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
@@ -438,6 +443,7 @@
 				"     upsertable: false,",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
+				"     saveOrder: 5,",
 				"     errorHandlingOption: 'stopOnFirstError',",
 				"     mapColumn(",
 				"          COURSENAME = coursename,",
@@ -466,6 +472,7 @@
 				"     upsertable: false,",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
+				"     saveOrder: 4,",
 				"     errorHandlingOption: 'stopOnFirstError',",
 				"     mapColumn(",
 				"          GRADENAME = grade_level,",
@@ -493,15 +500,15 @@
 				"     upsertable: false,",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
+				"     saveOrder: 3,",
 				"     errorHandlingOption: 'stopOnFirstError',",
 				"     mapColumn(",
 				"          MODENAME = course_materials,",
 				"          INSERTEDBY = Inserts@EdwModesSink@InsertedBy,",
 				"          MODIFIEDBY = Inserts@EdwModesSink@ModifiedBy,",
-				"          INSERTEDTIME = Inserts@EdwModesSink@InsertedTime,",
-				"          MODIFIEDTIME = Inserts@EdwModesSink@ModifiedTime",
+				"          INSERTEDTIME = Inserts@EdwModesSink@InsertedTime",
 				"     )) ~> EdwModesSink",
-				"UpdatingModifiedDate sink(allowSchemaDrift: true,",
+				"alterRow1 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     input(",
 				"          STUDENTKEY as integer,",
@@ -525,29 +532,17 @@
 				"     store: 'sqlserver',",
 				"     schemaName: 'edw',",
 				"     tableName: 'STUDENTS',",
-				"     insertable: true,",
+				"     insertable: false,",
 				"     updateable: true,",
 				"     deletable: false,",
 				"     upsertable: false,",
 				"     keys:['STUDENTKEY'],",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
+				"     saveOrder: 1,",
 				"     errorHandlingOption: 'stopOnFirstError',",
 				"     mapColumn(",
-				"          STUDENTID = id,",
-				"          FNAME = first_name,",
-				"          EMAIL = StudentsSplit@UpdateIf@email,",
-				"          LNAME = last_name,",
-				"          GENDER = StudentsSplit@UpdateIf@gender,",
-				"          ADDRESS = StudentsSplit@UpdateIf@address,",
-				"          STATE = StudentsSplit@UpdateIf@state,",
-				"          CITY = StudentsSplit@UpdateIf@city,",
-				"          PHONENUMBER = phone_number,",
-				"          POSTALCODE = postal_code,",
-				"          HASHCOLUMN = StudentsSplit@UpdateIf@HashColumn,",
-				"          INSERTEDBY = StudentsSplit@UpdateIf@InsertedBy,",
-				"          MODIFIEDBY = StudentsSplit@UpdateIf@ModifiedBy,",
-				"          INSERTEDTIME = StudentsSplit@UpdateIf@InsertedTime,",
+				"          MODIFIEDTIME,",
 				"          STUDENTKEY",
 				"     )) ~> UpdateEdwStudentsSink"
 			]

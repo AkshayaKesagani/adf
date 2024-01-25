@@ -1,0 +1,246 @@
+{
+	"name": "LoadingFacts",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "DailyDataTable",
+						"type": "DatasetReference"
+					},
+					"name": "StageDailyData"
+				},
+				{
+					"linkedService": {
+						"referenceName": "Sql server",
+						"type": "LinkedServiceReference"
+					},
+					"name": "edwmodes"
+				},
+				{
+					"linkedService": {
+						"referenceName": "Sql server",
+						"type": "LinkedServiceReference"
+					},
+					"name": "edwcourses"
+				},
+				{
+					"linkedService": {
+						"referenceName": "Sql server",
+						"type": "LinkedServiceReference"
+					},
+					"name": "edwgrades"
+				}
+			],
+			"sinks": [
+				{
+					"linkedService": {
+						"referenceName": "Storage account",
+						"type": "LinkedServiceReference"
+					},
+					"name": "LateArrivingDimsSink"
+				},
+				{
+					"linkedService": {
+						"referenceName": "Sql server",
+						"type": "LinkedServiceReference"
+					},
+					"name": "FactStudentPerformance"
+				}
+			],
+			"transformations": [
+				{
+					"name": "FetchingFactColumns"
+				},
+				{
+					"name": "JoinedStageWithEdwModes"
+				},
+				{
+					"name": "JoinedStageWithEdwCourses"
+				},
+				{
+					"name": "ReplacingLateArrivingModes"
+				},
+				{
+					"name": "ReplacingLateArrivingDimEdwCourses"
+				},
+				{
+					"name": "JoinedStageWithEdwGrades"
+				},
+				{
+					"name": "ReplaceLateArrivingEdwGrades"
+				},
+				{
+					"name": "split1"
+				},
+				{
+					"name": "AuditColumns"
+				},
+				{
+					"name": "AuditToLateArriving"
+				}
+			],
+			"scriptLines": [
+				"parameters{",
+				"     InsertedBy as string,",
+				"     ModifiedBy as string,",
+				"     InsertedTime as timestamp",
+				"}",
+				"source(output(",
+				"          student_id as long,",
+				"          nationality as string,",
+				"          address as string,",
+				"          city as string,",
+				"          state as string,",
+				"          postal_code as string,",
+				"          phone_number as string,",
+				"          parent_name as string,",
+				"          parent_email as string,",
+				"          parent_phone as string,",
+				"          grade_level as string,",
+				"          gpa as double,",
+				"          attendance_percentage as double,",
+				"          homework_completed as double,",
+				"          test_scores as double,",
+				"          class_rank as long,",
+				"          teacher_name as string,",
+				"          course_name as string,",
+				"          course_grade as string,",
+				"          course_start_date as string,",
+				"          course_end_date as string,",
+				"          course_duration as long,",
+				"          course_teacher_feedback as string,",
+				"          course_student_feedback as string,",
+				"          course_materials as string,",
+				"          course_attendance as boolean,",
+				"          course_grade_weightage as double,",
+				"          course_passing_grade as double,",
+				"          course_completion_status as boolean,",
+				"          LastModified as string,",
+				"          LastModifiedBy as string,",
+				"          LastRunId as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> StageDailyData",
+				"source(output(",
+				"          MODEID as integer,",
+				"          MODENAME as string,",
+				"          INSERTEDBY as string,",
+				"          MODIFIEDBY as string,",
+				"          INSERTEDTIME as timestamp,",
+				"          MODIFIEDTIME as timestamp",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'table',",
+				"     store: 'sqlserver',",
+				"     schemaName: 'edw',",
+				"     tableName: 'MODES',",
+				"     isolationLevel: 'READ_UNCOMMITTED') ~> edwmodes",
+				"source(output(",
+				"          COURSEID as integer,",
+				"          COURSENAME as string,",
+				"          COURSEGRADE as string,",
+				"          INSERTEDBY as string,",
+				"          MODIFIEDBY as string,",
+				"          INSERTEDTIME as timestamp,",
+				"          MODIFIEDTIME as timestamp",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'table',",
+				"     store: 'sqlserver',",
+				"     schemaName: 'edw',",
+				"     tableName: 'COURSES',",
+				"     isolationLevel: 'READ_UNCOMMITTED') ~> edwcourses",
+				"source(output(",
+				"          GRADEID as integer,",
+				"          GRADENAME as string,",
+				"          INSERTEDBY as string,",
+				"          MODIFIEDBY as string,",
+				"          INSERTEDTIME as timestamp,",
+				"          MODIFIEDTIME as timestamp",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'table',",
+				"     store: 'sqlserver',",
+				"     schemaName: 'edw',",
+				"     tableName: 'GRADES',",
+				"     isolationLevel: 'READ_UNCOMMITTED') ~> edwgrades",
+				"StageDailyData select(mapColumn(",
+				"          student_id,",
+				"          gpa,",
+				"          attendance_percentage,",
+				"          homework_completed,",
+				"          test_scores,",
+				"          class_rank,",
+				"          course_materials,",
+				"          course_name,",
+				"          course_grade,",
+				"          grade_level",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> FetchingFactColumns",
+				"FetchingFactColumns, edwmodes join(course_materials == MODENAME,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> JoinedStageWithEdwModes",
+				"ReplacingLateArrivingModes, edwcourses join(course_name == COURSENAME",
+				"     && course_grade == COURSEGRADE,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> JoinedStageWithEdwCourses",
+				"JoinedStageWithEdwModes derive(MODEID = iif(isNull(MODEID),-999,MODEID),",
+				"          MODENAME = course_materials) ~> ReplacingLateArrivingModes",
+				"JoinedStageWithEdwCourses derive(MODEID = iif(isNull(COURSEID),-999,COURSEID),",
+				"          COURSENAME = course_name,",
+				"          COURSEGRADE = course_grade) ~> ReplacingLateArrivingDimEdwCourses",
+				"ReplacingLateArrivingDimEdwCourses, edwgrades join(grade_level == GRADENAME,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> JoinedStageWithEdwGrades",
+				"JoinedStageWithEdwGrades derive(GRADEID = iif(isNull(GRADEID),-999,GRADEID),",
+				"          GRADENAME = grade_level) ~> ReplaceLateArrivingEdwGrades",
+				"ReplaceLateArrivingEdwGrades split(MODEID!=-999 && COURSEID!=-999 && GRADEID!=-999,",
+				"     disjoint: false) ~> split1@(ExistingDimension, LateArrivingDimension)",
+				"split1@ExistingDimension derive(INSERTEDBY = $InsertedBy,",
+				"          MODIFIEDBY = $ModifiedBy,",
+				"          INSERTEDTIME = $InsertedTime) ~> AuditColumns",
+				"split1@LateArrivingDimension derive(INSERTEDBY = $InsertedBy,",
+				"          MODIFIEDBY = $ModifiedBy,",
+				"          INSERTEDTIME = $InsertedTime) ~> AuditToLateArriving",
+				"AuditToLateArriving sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'delimited',",
+				"     container: 'files',",
+				"     folderPath: 'LateArrivingDim.csv',",
+				"     columnDelimiter: ',',",
+				"     escapeChar: '\\\\',",
+				"     quoteChar: '\\\"',",
+				"     columnNamesAsHeader: false,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> LateArrivingDimsSink",
+				"AuditColumns sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'table',",
+				"     store: 'sqlserver',",
+				"     schemaName: 'edw',",
+				"     tableName: 'STUDENT_PERFORMANCE',",
+				"     insertable: true,",
+				"     updateable: false,",
+				"     deletable: false,",
+				"     upsertable: false,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> FactStudentPerformance"
+			]
+		}
+	}
+}

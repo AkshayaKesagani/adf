@@ -6,11 +6,8 @@
 		"pipelines": [
 			{
 				"pipelineReference": {
-					"referenceName": "pipeline1",
+					"referenceName": "Loading Dimensions",
 					"type": "PipelineReference"
-				},
-				"parameters": {
-					"ScheduledTime": "@trigger().scheduledTime\t"
 				}
 			}
 		],
