@@ -3,7 +3,7 @@
 	"properties": {
 		"activities": [
 			{
-				"name": "Data flow1",
+				"name": "Loading Facts to Student_performace Fact",
 				"type": "ExecuteDataFlow",
 				"dependsOn": [],
 				"policy": {
@@ -16,7 +16,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"dataflow": {
-						"referenceName": "LoadingFacts",
+						"referenceName": "LoadingFactStudentPerformanceLevel",
 						"type": "DataFlowReference",
 						"parameters": {
 							"InsertedBy": {
@@ -27,10 +27,42 @@
 								"value": "'@{pipeline().Pipeline}'",
 								"type": "Expression"
 							},
-							"InsertedTime": {
-								"value": "@utcnow()",
+							"InsertedTime": "currentTimestamp()"
+						}
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
+			},
+			{
+				"name": "Loading Facts to Course_level fact",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "LoadingFactCourseLevel",
+						"type": "DataFlowReference",
+						"parameters": {
+							"InsertedBy": {
+								"value": "'@{pipeline().Pipeline}'",
 								"type": "Expression"
-							}
+							},
+							"ModifiedBy": {
+								"value": "'@{pipeline().Pipeline}'",
+								"type": "Expression"
+							},
+							"InsertedTime": "currentTimestamp()"
 						}
 					},
 					"compute": {

@@ -1,0 +1,302 @@
+{
+	"name": "LoadingFactCourseLevel",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"linkedService": {
+						"referenceName": "Sql server",
+						"type": "LinkedServiceReference"
+					},
+					"name": "LoadingCourseLevelFact"
+				},
+				{
+					"linkedService": {
+						"referenceName": "Sql server",
+						"type": "LinkedServiceReference"
+					},
+					"name": "edwModes"
+				},
+				{
+					"linkedService": {
+						"referenceName": "Sql server",
+						"type": "LinkedServiceReference"
+					},
+					"name": "edwGrades"
+				},
+				{
+					"linkedService": {
+						"referenceName": "Sql server",
+						"type": "LinkedServiceReference"
+					},
+					"name": "edwCourses"
+				}
+			],
+			"sinks": [
+				{
+					"linkedService": {
+						"referenceName": "Sql server",
+						"type": "LinkedServiceReference"
+					},
+					"name": "LoadingIntoCourseLevelFact"
+				},
+				{
+					"linkedService": {
+						"referenceName": "Storage account",
+						"type": "LinkedServiceReference"
+					},
+					"name": "LAteArriviingDimsLoad"
+				}
+			],
+			"transformations": [
+				{
+					"name": "FetchingRequiredColumns"
+				},
+				{
+					"name": "JoinStageWithEdwModes"
+				},
+				{
+					"name": "ChaningLateArrivingDimModesId"
+				},
+				{
+					"name": "JoinStageWithEdwGrades"
+				},
+				{
+					"name": "ChangingLateArrivingDimGradesId"
+				},
+				{
+					"name": "JoinStageWithEdwCourses"
+				},
+				{
+					"name": "ChangingLateArrivingDimCoursesId"
+				},
+				{
+					"name": "SplittingEmployees"
+				},
+				{
+					"name": "AddingAuditColumns"
+				},
+				{
+					"name": "AddingAudit"
+				}
+			],
+			"scriptLines": [
+				"parameters{",
+				"     InsertedBy as string,",
+				"     ModifiedBy as string,",
+				"     InsertedTime as timestamp (currentTimestamp())",
+				"}",
+				"source(output(",
+				"          student_id as long,",
+				"          nationality as string,",
+				"          address as string,",
+				"          city as string,",
+				"          state as string,",
+				"          postal_code as string,",
+				"          phone_number as string,",
+				"          parent_name as string,",
+				"          parent_email as string,",
+				"          parent_phone as string,",
+				"          grade_level as string,",
+				"          gpa as double,",
+				"          attendance_percentage as double,",
+				"          homework_completed as double,",
+				"          test_scores as double,",
+				"          class_rank as long,",
+				"          teacher_name as string,",
+				"          course_name as string,",
+				"          course_grade as string,",
+				"          course_start_date as string,",
+				"          course_end_date as string,",
+				"          course_duration as long,",
+				"          course_teacher_feedback as string,",
+				"          course_student_feedback as string,",
+				"          course_materials as string,",
+				"          course_attendance as boolean,",
+				"          course_grade_weightage as double,",
+				"          course_passing_grade as double,",
+				"          course_completion_status as boolean,",
+				"          LastModified as string,",
+				"          LastModifiedBy as string,",
+				"          LastRunId as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'table',",
+				"     store: 'sqlserver',",
+				"     schemaName: 'stage',",
+				"     tableName: 'DailyData',",
+				"     isolationLevel: 'READ_UNCOMMITTED') ~> LoadingCourseLevelFact",
+				"source(output(",
+				"          MODEID as integer,",
+				"          MODENAME as string,",
+				"          INSERTEDBY as string,",
+				"          MODIFIEDBY as string,",
+				"          INSERTEDTIME as timestamp,",
+				"          MODIFIEDTIME as timestamp",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'table',",
+				"     store: 'sqlserver',",
+				"     schemaName: 'edw',",
+				"     tableName: 'MODES',",
+				"     isolationLevel: 'READ_UNCOMMITTED') ~> edwModes",
+				"source(output(",
+				"          GRADEID as integer,",
+				"          GRADENAME as string,",
+				"          INSERTEDBY as string,",
+				"          MODIFIEDBY as string,",
+				"          INSERTEDTIME as timestamp,",
+				"          MODIFIEDTIME as timestamp",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'table',",
+				"     store: 'sqlserver',",
+				"     schemaName: 'edw',",
+				"     tableName: 'GRADES',",
+				"     isolationLevel: 'READ_UNCOMMITTED') ~> edwGrades",
+				"source(output(",
+				"          COURSEID as integer,",
+				"          COURSENAME as string,",
+				"          COURSEGRADE as string,",
+				"          INSERTEDBY as string,",
+				"          MODIFIEDBY as string,",
+				"          INSERTEDTIME as timestamp,",
+				"          MODIFIEDTIME as timestamp",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'table',",
+				"     store: 'sqlserver',",
+				"     schemaName: 'edw',",
+				"     tableName: 'COURSES',",
+				"     isolationLevel: 'READ_UNCOMMITTED') ~> edwCourses",
+				"LoadingCourseLevelFact select(mapColumn(",
+				"          student_id,",
+				"          grade_level,",
+				"          course_name,",
+				"          course_grade,",
+				"          course_start_date,",
+				"          course_end_date,",
+				"          course_duration,",
+				"          course_materials,",
+				"          course_attendance,",
+				"          course_grade_weightage,",
+				"          course_passing_grade,",
+				"          course_completion_status",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> FetchingRequiredColumns",
+				"FetchingRequiredColumns, edwModes join(course_materials == MODENAME,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> JoinStageWithEdwModes",
+				"JoinStageWithEdwModes derive(MODEID = iif(isNull(MODEID),-999,MODEID)) ~> ChaningLateArrivingDimModesId",
+				"ChaningLateArrivingDimModesId, edwGrades join(grade_level == GRADENAME,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> JoinStageWithEdwGrades",
+				"JoinStageWithEdwGrades derive(GRADEID = iif(isNull(GRADEID),-999,GRADEID)) ~> ChangingLateArrivingDimGradesId",
+				"ChangingLateArrivingDimGradesId, edwCourses join(course_name == COURSENAME",
+				"     && course_grade == COURSEGRADE,",
+				"     joinType:'left',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> JoinStageWithEdwCourses",
+				"JoinStageWithEdwCourses derive(COURSEID = iif(isNull(COURSEID),-999,COURSEID)) ~> ChangingLateArrivingDimCoursesId",
+				"ChangingLateArrivingDimCoursesId split(MODEID!=-999 && GRADEID!=-999 && COURSEID!=-999,",
+				"     disjoint: false) ~> SplittingEmployees@(ExistingDims, LateArrrivingDims)",
+				"SplittingEmployees@ExistingDims derive(INSERTEDBY = $InsertedBy,",
+				"          MODIFIEDBY = $ModifiedBy,",
+				"          INSERTEDTIME = $InsertedTime) ~> AddingAuditColumns",
+				"SplittingEmployees@LateArrrivingDims derive(INSERTEDBY = $InsertedBy,",
+				"          MODIFIEDBY = $ModifiedBy,",
+				"          INSERTEDTIME = $InsertedTime) ~> AddingAudit",
+				"AddingAuditColumns sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          COURSE_LEVEL_ID as integer,",
+				"          STUDENTID as integer,",
+				"          COURSEID as integer,",
+				"          MODEID as integer,",
+				"          GRADEID as integer,",
+				"          COURSEATTENDANCE as string,",
+				"          COURSESTARTDATE as timestamp,",
+				"          COURSEENDDATE as timestamp,",
+				"          COURSEDURATION as integer,",
+				"          COURSEGRADEWEIGHTAGE as decimal(5,2),",
+				"          COURSEPASSINGGRADE as decimal(5,2),",
+				"          COURSECOMPLETIONSTATUS as string,",
+				"          INSERTEDBY as string,",
+				"          MODIFIEDBY as string,",
+				"          INSERTEDTIME as timestamp,",
+				"          MODIFIEDTIME as timestamp",
+				"     ),",
+				"     format: 'table',",
+				"     store: 'sqlserver',",
+				"     schemaName: 'edw',",
+				"     tableName: 'COURSE_LEVEL',",
+				"     insertable: true,",
+				"     updateable: false,",
+				"     deletable: false,",
+				"     upsertable: false,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          STUDENTID = student_id,",
+				"          COURSEID,",
+				"          MODEID,",
+				"          GRADEID,",
+				"          COURSEATTENDANCE = course_attendance,",
+				"          COURSESTARTDATE = course_start_date,",
+				"          COURSEENDDATE = course_end_date,",
+				"          COURSEDURATION = course_duration,",
+				"          COURSEGRADEWEIGHTAGE = course_grade_weightage,",
+				"          COURSEPASSINGGRADE = course_passing_grade,",
+				"          COURSECOMPLETIONSTATUS = course_completion_status,",
+				"          INSERTEDBY,",
+				"          MODIFIEDBY,",
+				"          INSERTEDTIME",
+				"     )) ~> LoadingIntoCourseLevelFact",
+				"AddingAudit sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'delimited',",
+				"     container: 'files',",
+				"     folderPath: 'LateArrivingDimsCourseLevel.csv',",
+				"     columnDelimiter: ',',",
+				"     escapeChar: '\\\\',",
+				"     quoteChar: '\\\"',",
+				"     columnNamesAsHeader: false,",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     mapColumn(",
+				"          student_id,",
+				"          grade_level,",
+				"          course_name,",
+				"          course_grade,",
+				"          course_start_date,",
+				"          course_end_date,",
+				"          course_duration,",
+				"          course_materials,",
+				"          course_attendance,",
+				"          course_grade_weightage,",
+				"          course_passing_grade,",
+				"          course_completion_status,",
+				"          MODEID,",
+				"          MODENAME,",
+				"          GRADEID,",
+				"          GRADENAME,",
+				"          COURSEID,",
+				"          COURSENAME,",
+				"          COURSEGRADE",
+				"     )) ~> LAteArriviingDimsLoad"
+			]
+		}
+	}
+}
