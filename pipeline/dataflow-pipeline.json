@@ -102,28 +102,6 @@
 				},
 				"userProperties": [],
 				"typeProperties": {
-					"dataflow": {
-						"referenceName": "Union",
-						"type": "DataFlowReference",
-						"datasetParameters": {
-							"HREmployees": {
-								"foldername": "output",
-								"filename": "Hremployees.csv"
-							},
-							"ITEmployees": {
-								"foldername": "output",
-								"filename": "ItEmployees.csv"
-							},
-							"FinanceEmployees": {
-								"foldername": "output",
-								"filename": "Finance.csv"
-							},
-							"CombinedData": {
-								"foldername": "output",
-								"filename": "Combine.csv"
-							}
-						}
-					},
 					"compute": {
 						"coreCount": 8,
 						"computeType": "General"
